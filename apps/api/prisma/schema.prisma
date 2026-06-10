@@ -1,0 +1,311 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+  TELEGRAM
+}
+
+enum CourtType {
+  INDOOR
+  OUTDOOR
+}
+
+enum CourtSurface {
+  HARDWOOD
+  ASPHALT
+  CONCRETE
+  RUBBER
+  OTHER
+}
+
+enum OpenRunStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  CANCELLED
+  COMPLETED
+}
+
+enum ParticipantStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum NewsCategory {
+  NEWS
+  TOURNAMENTS
+  INTERVIEWS
+  PLAYERS
+  AMATEUR
+  UNIVERSITY
+}
+
+enum MediaType {
+  VIDEO
+  PHOTO
+  INTERVIEW
+  PODCAST
+}
+
+// ─────────────────────────────────────────────
+// USERS
+// ─────────────────────────────────────────────
+
+model User {
+  id               String       @id @default(uuid())
+  email            String?      @unique
+  passwordHash     String?
+  firstName        String
+  lastName         String
+  phone            String?      @unique
+  telegramId       String?      @unique
+  telegramUsername String?
+  googleId         String?      @unique
+  avatarUrl        String?
+  avatarKey        String?
+  role             UserRole     @default(USER)
+  provider         AuthProvider @default(LOCAL)
+  isActive         Boolean      @default(true)
+  refreshToken     String?
+
+  // Relations
+  organizedRuns    OpenRun[]              @relation("OrganizerRuns")
+  participations   OpenRunParticipant[]
+  reviews          Review[]
+  news             News[]
+  media            Media[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([telegramId])
+  @@index([googleId])
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// COURTS
+// ─────────────────────────────────────────────
+
+model Court {
+  id               String       @id @default(uuid())
+  name             String
+  slug             String       @unique
+  address          String
+  district         String?
+  city             String       @default("Ташкент")
+  latitude         Float
+  longitude        Float
+  type             CourtType
+  surface          CourtSurface @default(ASPHALT)
+  isFree           Boolean      @default(true)
+  hasLighting      Boolean      @default(false)
+  hasChangingRooms Boolean      @default(false)
+  hoops            Int          @default(2)
+  description      String?
+  isVerified       Boolean      @default(false)
+  isActive         Boolean      @default(true)
+
+  // Denormalized aggregates — updated on review change
+  ratingSum    Int @default(0)
+  reviewCount  Int @default(0)
+
+  // Relations
+  images   CourtImage[]
+  reviews  Review[]
+  openRuns OpenRun[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([city])
+  @@index([type])
+  @@index([isFree])
+  @@index([isActive])
+  @@map("courts")
+}
+
+model CourtImage {
+  id           String  @id @default(uuid())
+  courtId      String
+  court        Court   @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  url          String
+  thumbnailUrl String
+  mediumUrl    String
+  storageKey   String
+  isPrimary    Boolean @default(false)
+  order        Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([courtId])
+  @@map("court_images")
+}
+
+model Review {
+  id       String @id @default(uuid())
+  courtId  String
+  court    Court  @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating   Int
+  comment  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([courtId, userId])
+  @@index([courtId])
+  @@map("reviews")
+}
+
+// ─────────────────────────────────────────────
+// OPEN RUNS
+// ─────────────────────────────────────────────
+
+model OpenRun {
+  id              String        @id @default(uuid())
+  courtId         String
+  court           Court         @relation(fields: [courtId], references: [id])
+  organizerId     String
+  organizer       User          @relation("OrganizerRuns", fields: [organizerId], references: [id])
+  title           String?
+  description     String?
+  date            DateTime      @db.Date
+  startTime       String
+  endTime         String
+  maxParticipants Int
+  fee             Int           @default(0)
+  isPublic        Boolean       @default(true)
+  status          OpenRunStatus @default(OPEN)
+
+  // Relations
+  participants OpenRunParticipant[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courtId])
+  @@index([organizerId])
+  @@index([date])
+  @@index([status])
+  @@map("open_runs")
+}
+
+model OpenRunParticipant {
+  id        String            @id @default(uuid())
+  openRunId String
+  openRun   OpenRun           @relation(fields: [openRunId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    ParticipantStatus @default(PENDING)
+  note      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([openRunId, userId])
+  @@index([openRunId])
+  @@index([userId])
+  @@map("open_run_participants")
+}
+
+// ─────────────────────────────────────────────
+// NEWS
+// ─────────────────────────────────────────────
+
+model News {
+  id          String       @id @default(uuid())
+  title       String
+  slug        String       @unique
+  excerpt     String?
+  content     String
+  coverUrl    String?
+  coverKey    String?
+  category    NewsCategory @default(NEWS)
+  authorId    String
+  author      User         @relation(fields: [authorId], references: [id])
+  isPublished Boolean      @default(false)
+  publishedAt DateTime?
+  viewCount   Int          @default(0)
+
+  // Relations
+  gallery NewsImage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([isPublished])
+  @@index([publishedAt])
+  @@index([slug])
+  @@map("news")
+}
+
+model NewsImage {
+  id           String  @id @default(uuid())
+  newsId       String
+  news         News    @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  url          String
+  thumbnailUrl String
+  mediumUrl    String
+  storageKey   String
+  caption      String?
+  order        Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([newsId])
+  @@map("news_images")
+}
+
+// ─────────────────────────────────────────────
+// MEDIA
+// ─────────────────────────────────────────────
+
+model Media {
+  id                  String    @id @default(uuid())
+  title               String
+  description         String?
+  type                MediaType
+  youtubeUrl          String?
+  youtubeThumbnail    String?
+  photoUrl            String?
+  photoThumbnailUrl   String?
+  photoMediumUrl      String?
+  photoStorageKey     String?
+  authorId            String
+  author              User      @relation(fields: [authorId], references: [id])
+  isPublished         Boolean   @default(false)
+  publishedAt         DateTime?
+  viewCount           Int       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([isPublished])
+  @@index([publishedAt])
+  @@map("media")
+}
