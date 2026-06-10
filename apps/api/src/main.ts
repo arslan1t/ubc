@@ -17,8 +17,18 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
+  const frontendUrl = configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
   app.enableCors({
-    origin: configService.get<string>('FRONTEND_URL', 'http://localhost:3000'),
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Allow requests with no origin (curl, mobile, etc.)
+      if (!origin) return callback(null, true);
+      // Allow localhost in dev + configured frontend URL + any vercel.app subdomain
+      const allowed =
+        origin === frontendUrl ||
+        origin.startsWith('http://localhost') ||
+        origin.endsWith('.vercel.app');
+      callback(null, allowed);
+    },
     credentials: true,
   });
 
@@ -34,6 +44,11 @@ async function bootstrap() {
   );
 
   app.useGlobalFilters(new HttpExceptionFilter());
+
+  // Health check endpoint for Render / Railway
+  app.getHttpAdapter().get('/api/v1/health', (_req: any, reply: any) => {
+    reply.send({ status: 'ok', timestamp: new Date().toISOString() });
+  });
 
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()

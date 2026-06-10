@@ -1,6 +1,3 @@
 {
-  "framework": "nextjs",
-  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "buildCommand": "cd ../.. && pnpm --filter=@ubc/web run build",
-  "outputDirectory": ".next"
+  "framework": "nextjs"
 }
