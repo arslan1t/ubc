@@ -5,7 +5,7 @@ services:
     region: frankfurt
     plan: free
     branch: main
-    buildCommand: "pnpm install --frozen-lockfile && pnpm --filter=@ubc/api run build"
+    buildCommand: "pnpm install --frozen-lockfile --prod=false && pnpm --filter=@ubc/api run build"
     startCommand: "pnpm --filter=@ubc/api exec prisma migrate deploy && node apps/api/dist/main"
     healthCheckPath: /api/v1/health
     envVars:
