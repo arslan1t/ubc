@@ -9,6 +9,7 @@ import { OpenRunsModule } from './open-runs/open-runs.module';
 import { NewsModule } from './news/news.module';
 import { MediaModule } from './media/media.module';
 import { StorageModule } from './storage/storage.module';
+import { CommunityModule } from './community/community.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { StorageModule } from './storage/storage.module';
     OpenRunsModule,
     NewsModule,
     MediaModule,
+    CommunityModule,
   ],
 })
 export class AppModule {}
