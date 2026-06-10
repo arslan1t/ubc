@@ -1,4 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   S3Client,
@@ -20,22 +24,45 @@ export interface UploadResult {
 @Injectable()
 export class StorageService {
   private readonly logger = new Logger(StorageService.name);
-  private readonly client: S3Client;
+  private readonly client: S3Client | null;
   private readonly bucket: string;
   private readonly publicUrl: string;
+  private readonly configured: boolean;
 
   constructor(private config: ConfigService) {
-    this.bucket = config.getOrThrow<string>('R2_BUCKET');
-    this.publicUrl = config.getOrThrow<string>('R2_PUBLIC_URL');
+    this.bucket = config.get<string>('R2_BUCKET', '');
+    this.publicUrl = config.get<string>('R2_PUBLIC_URL', '');
+    const endpoint = config.get<string>('R2_ENDPOINT', '');
+    const accessKeyId = config.get<string>('R2_ACCESS_KEY_ID', '');
+    const secretAccessKey = config.get<string>('R2_SECRET_ACCESS_KEY', '');
 
-    this.client = new S3Client({
-      region: 'auto',
-      endpoint: config.getOrThrow<string>('R2_ENDPOINT'),
-      credentials: {
-        accessKeyId: config.getOrThrow<string>('R2_ACCESS_KEY_ID'),
-        secretAccessKey: config.getOrThrow<string>('R2_SECRET_ACCESS_KEY'),
-      },
-    });
+    // Storage is optional: the app boots without R2 configured.
+    // Uploads will throw a clear error until R2 env vars are provided.
+    this.configured = Boolean(
+      this.bucket && this.publicUrl && endpoint && accessKeyId && secretAccessKey,
+    );
+
+    if (this.configured) {
+      this.client = new S3Client({
+        region: 'auto',
+        endpoint,
+        credentials: { accessKeyId, secretAccessKey },
+      });
+    } else {
+      this.client = null;
+      this.logger.warn(
+        'R2 storage is not configured (missing R2_* env vars). File uploads are disabled.',
+      );
+    }
+  }
+
+  private ensureConfigured(): S3Client {
+    if (!this.configured || !this.client) {
+      throw new ServiceUnavailableException(
+        'File storage is not configured. Set R2_* environment variables to enable uploads.',
+      );
+    }
+    return this.client;
   }
 
   async uploadImage(
@@ -84,6 +111,7 @@ export class StorageService {
   }
 
   async deleteFile(key: string): Promise<void> {
+    if (!this.configured || !this.client) return;
     try {
       await this.client.send(
         new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
@@ -98,7 +126,8 @@ export class StorageService {
   }
 
   private async upload(key: string, body: Buffer, contentType: string) {
-    await this.client.send(
+    const client = this.ensureConfigured();
+    await client.send(
       new PutObjectCommand({
         Bucket: this.bucket,
         Key: key,
