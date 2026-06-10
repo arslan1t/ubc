@@ -88,6 +88,11 @@ model User {
   isActive         Boolean      @default(true)
   refreshToken     String?
 
+  // Community
+  reputation       Int          @default(0)
+  bio              String?
+  city             String?
+
   // Relations
   organizedRuns    OpenRun[]              @relation("OrganizerRuns")
   participations   OpenRunParticipant[]
