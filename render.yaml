@@ -5,8 +5,7 @@ services:
     region: frankfurt
     plan: free
     branch: main
-    rootDir: .
-    buildCommand: "pnpm install --frozen-lockfile && pnpm --filter=@ubc/api run build && pnpm --filter=@ubc/api exec prisma generate"
+    buildCommand: "pnpm install --frozen-lockfile && cd apps/api && npx prisma generate && npx nest build"
     startCommand: "node apps/api/dist/main"
     healthCheckPath: /api/v1/health
     envVars:
