@@ -12,7 +12,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
-    "db:seed": "ts-node prisma/seed.ts"
+    "db:seed": "ts-node --transpile-only prisma/seed.ts",
+    "db:seed:all": "ts-node --transpile-only prisma/seed.ts && ts-node --transpile-only prisma/seed-courts-2.ts && ts-node --transpile-only prisma/seed-news.ts && ts-node --transpile-only prisma/seed-admin.ts && ts-node --transpile-only prisma/seed-court-images.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.716.0",
