@@ -17,6 +17,8 @@ export default function HomePage() {
           muted
           loop
           playsInline
+          preload="metadata"
+          poster="/hero-poster.jpg"
           className="absolute inset-0 w-full h-full object-cover"
         >
           <source src="/background.mp4" type="video/mp4" />
