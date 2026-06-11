@@ -10,6 +10,7 @@ import { NewsModule } from './news/news.module';
 import { MediaModule } from './media/media.module';
 import { StorageModule } from './storage/storage.module';
 import { CommunityModule } from './community/community.module';
+import { ModerationModule } from './moderation/moderation.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { CommunityModule } from './community/community.module';
     NewsModule,
     MediaModule,
     CommunityModule,
+    ModerationModule,
   ],
 })
 export class AppModule {}

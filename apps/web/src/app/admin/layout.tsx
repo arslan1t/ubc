@@ -4,15 +4,14 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useAuth, useMe } from '@/hooks/use-auth';
-import { Newspaper, Home, LogOut } from 'lucide-react';
-import { useLogout } from '@/hooks/use-auth';
+import { useAuth, useMe, useLogout } from '@/hooks/use-auth';
+import { useModerationStats } from '@/hooks/use-moderation';
+import { Newspaper, Home, LogOut, ShieldCheck, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 
-const NAV = [
-  { href: '/admin/news', label: 'Новости', icon: Newspaper },
-];
+const STAFF_ROLES = ['MODERATOR', 'ADMIN', 'SUPER_ADMIN'];
+const ADMIN_ROLES = ['ADMIN', 'SUPER_ADMIN'];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -20,9 +19,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { isAuthenticated } = useAuth();
   const { data: user, isLoading } = useMe();
   const logout = useLogout();
+  const isStaff = !!user && STAFF_ROLES.includes(user.role);
+  const { data: modStats } = useModerationStats();
 
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || (user && user.role !== 'ADMIN' && user.role !== 'MODERATOR'))) {
+    if (!isLoading && (!isAuthenticated || (user && !STAFF_ROLES.includes(user.role)))) {
       router.replace('/auth/login');
     }
   }, [isAuthenticated, user, isLoading, router]);
@@ -35,11 +36,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (user.role !== 'ADMIN' && user.role !== 'MODERATOR') return null;
+  if (!isStaff) return null;
+
+  const isAdmin = ADMIN_ROLES.includes(user.role);
+  const pending = modStats?.totalPending ?? 0;
+
+  const nav = [
+    { href: '/admin/moderation', label: 'Модерация', icon: ShieldCheck, badge: pending, show: true },
+    { href: '/admin/news', label: 'Новости', icon: Newspaper, show: true },
+    { href: '/admin/users', label: 'Пользователи', icon: Users, show: isAdmin },
+  ].filter((n) => n.show);
 
   return (
     <div className="min-h-screen flex">
-      {/* Sidebar */}
       <aside className="w-56 shrink-0 border-r border-border bg-card/50 flex flex-col">
         <div className="p-5 border-b border-border">
           <Link href="/" className="flex items-center gap-2">
@@ -48,10 +57,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <span className="text-primary">UBC</span> Admin
             </span>
           </Link>
+          <div className="mt-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+            {user.role.replace('_', ' ')}
+          </div>
         </div>
 
         <nav className="flex-1 p-3 space-y-1">
-          {NAV.map(({ href, label, icon: Icon }) => (
+          {nav.map(({ href, label, icon: Icon, badge }) => (
             <Link
               key={href}
               href={href}
@@ -63,7 +75,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               )}
             >
               <Icon className="w-4 h-4" />
-              {label}
+              <span className="flex-1">{label}</span>
+              {badge ? (
+                <span className="min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center">
+                  {badge}
+                </span>
+              ) : null}
             </Link>
           ))}
         </nav>
@@ -86,10 +103,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="flex-1 overflow-auto bg-background">
-        {children}
-      </main>
+      <main className="flex-1 overflow-auto bg-background">{children}</main>
     </div>
   );
 }

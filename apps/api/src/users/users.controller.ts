@@ -3,13 +3,15 @@ import {
   Get,
   Patch,
   Body,
-  Post,
-  UseInterceptors,
+  Param,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { UserRole } from '@prisma/client';
 import { UsersService } from './users.service';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserDto, SetRoleDto } from './dto/update-user.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -39,5 +41,35 @@ export class UsersController {
   @ApiOperation({ summary: 'Мои участия' })
   getMyParticipations(@CurrentUser('id') userId: string) {
     return this.usersService.getMyParticipations(userId);
+  }
+
+  // ─── Admin: user management ───
+
+  @Roles(UserRole.ADMIN)
+  @Get()
+  @ApiOperation({ summary: 'Список пользователей (admin)' })
+  listUsers(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('role') role?: UserRole,
+  ) {
+    return this.usersService.listUsers({
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      search,
+      role,
+    });
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Patch(':id/role')
+  @ApiOperation({ summary: 'Изменить роль пользователя (admin/super admin)' })
+  setRole(
+    @Param('id') targetId: string,
+    @Body() dto: SetRoleDto,
+    @CurrentUser() actor: { id: string; role: UserRole },
+  ) {
+    return this.usersService.setRole(actor, targetId, dto.role);
   }
 }

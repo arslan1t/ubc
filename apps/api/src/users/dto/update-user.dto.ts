@@ -1,5 +1,13 @@
-import { IsString, IsOptional, MinLength, Matches } from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsString,
+  IsOptional,
+  MinLength,
+  MaxLength,
+  Matches,
+  IsEnum,
+} from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { UserRole } from '@prisma/client';
 
 export class UpdateUserDto {
   @ApiPropertyOptional()
@@ -24,4 +32,22 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   telegramUsername?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @MaxLength(280)
+  @IsOptional()
+  bio?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @MaxLength(80)
+  @IsOptional()
+  city?: string;
+}
+
+export class SetRoleDto {
+  @ApiProperty({ enum: UserRole })
+  @IsEnum(UserRole)
+  role!: UserRole;
 }
