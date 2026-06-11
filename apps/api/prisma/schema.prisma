@@ -15,6 +15,23 @@ enum UserRole {
   USER
   MODERATOR
   ADMIN
+  SUPER_ADMIN
+}
+
+enum SubmissionType {
+  COURT
+  NEWS
+  EVENT
+  PHOTO
+  REPORT
+  RESULT
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CHANGES_REQUESTED
 }
 
 enum AuthProvider {
@@ -99,6 +116,8 @@ model User {
   reviews          Review[]
   news             News[]
   media            Media[]
+  submissions          Submission[] @relation("SubmittedBy")
+  reviewedSubmissions  Submission[] @relation("ReviewedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -283,6 +302,41 @@ model NewsImage {
 
   @@index([newsId])
   @@map("news_images")
+}
+
+// ─────────────────────────────────────────────
+// MODERATION — community submissions queue
+// ─────────────────────────────────────────────
+
+model Submission {
+  id            String           @id @default(uuid())
+  type          SubmissionType
+  status        SubmissionStatus @default(PENDING)
+  // Free-form payload for the proposed entity (court fields, news fields, report text, etc.)
+  payload       Json
+  // Optional reference to an existing entity (e.g. a REPORT or PHOTO about a court/news)
+  targetType    String?
+  targetId      String?
+
+  submittedById String
+  submittedBy   User             @relation("SubmittedBy", fields: [submittedById], references: [id], onDelete: Cascade)
+
+  reviewedById  String?
+  reviewedBy    User?            @relation("ReviewedBy", fields: [reviewedById], references: [id])
+  reviewNote    String?
+  reviewedAt    DateTime?
+
+  // Id of the entity created once approved (court id, news id, …)
+  resultId      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([type])
+  @@index([submittedById])
+  @@index([status, type])
+  @@map("submissions")
 }
 
 // ─────────────────────────────────────────────
