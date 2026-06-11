@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useCourts } from '@/hooks/use-courts';
 import { CourtCard } from '@/components/courts/court-card';
@@ -18,13 +20,21 @@ export function CourtsPageContent() {
 
   return (
     <div className="container-page py-8">
-      <div className="mb-6">
-        <h1 className="font-display font-bold text-3xl md:text-4xl mb-2">
-          Баскетбольные <span className="text-primary">корты</span>
-        </h1>
-        <p className="text-muted-foreground">
-          Находи площадки рядом с тобой — все корты Ташкента на одной карте
-        </p>
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <h1 className="font-display font-bold text-3xl md:text-4xl mb-2">
+            Баскетбольные <span className="text-primary">корты</span>
+          </h1>
+          <p className="text-muted-foreground">
+            Находи площадки рядом с тобой — все корты Ташкента на одной карте
+          </p>
+        </div>
+        <Link
+          href="/courts/suggest"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          <Plus className="w-4 h-4" /> Предложить корт
+        </Link>
       </div>
 
       {/* Карта — всегда видна */}
