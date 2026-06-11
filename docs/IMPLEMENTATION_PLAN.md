@@ -7,11 +7,13 @@ Principles: **performance first**, additive DB migrations (safe on live prod), s
 ---
 
 ## Status (live)
+Founder build sequence was **2 → 1 → 3 → 4** (community → RBAC → contributions → pickup games).
 - ✅ **Phase 0** — cleanup + asset optimization (shipped)
-- ✅ **Phase 4** — community engine + alive homepage (shipped)
-- ✅ **Phase 1** — RBAC (5 roles, hierarchy) + moderation backbone + dashboard (shipped)
-- ⏭️ **Phase 3** — user contribution flows (next, per founder sequence 2→1→3→4)
-- ⬜ Phase 2 (storage/photos), Phase 5 (tournaments), Phase 6 (design/mobile), Phase 7 (news pro)
+- ✅ **Phase 4** — community engine + alive homepage (shipped) ← seq "2"
+- ✅ **Phase 1** — RBAC (5 roles, hierarchy) + moderation backbone + dashboard (shipped) ← seq "1"
+- ✅ **Phase 2** — user contribution flows: suggest court/news, report, my submissions (shipped) ← seq "3"
+- ⏭️ **Phase 3** — pickup games complete: waitlist, skill levels, unified hub (next) ← seq "4"
+- ⬜ Phase 5 (tournaments), Phase 6 (design/mobile), Phase 7 (news pro), storage/R2 (photos)
 
 ---
 
