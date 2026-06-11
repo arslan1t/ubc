@@ -14,6 +14,7 @@ import {
   MapPin, Star, Sun, Building, ArrowLeft, ExternalLink,
 } from 'lucide-react';
 import { YandexMap } from '@/components/courts/yandex-map';
+import { ReportButton } from '@/components/shared/report-button';
 import { formatDate } from '@/lib/utils';
 
 export function CourtDetailContent({ slug }: { slug: string }) {
@@ -48,13 +49,16 @@ export function CourtDetailContent({ slug }: { slug: string }) {
 
   return (
     <div className="container-page py-8">
-      <Link
-        href="/courts"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Все корты
-      </Link>
+      <div className="flex items-center justify-between mb-6">
+        <Link
+          href="/courts"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Все корты
+        </Link>
+        <ReportButton targetType="court" targetId={court.id} targetName={court.name} />
+      </div>
 
       {/* Header */}
       <div className="mb-6">

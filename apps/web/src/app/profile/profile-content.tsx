@@ -13,11 +13,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { OpenRunCard } from '@/components/open-runs/open-run-card';
+import { MySubmissions } from '@/components/profile/my-submissions';
 import { Skeleton } from '@/components/ui/skeleton';
 import api from '@/lib/api';
 import { getInitials, formatDate } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-import { LogOut, Edit3, TrendingUp, Trophy } from 'lucide-react';
+import { LogOut, Edit3, TrendingUp, Trophy, MapPin, Newspaper } from 'lucide-react';
+
+const ROLE_LABEL: Record<string, string> = {
+  USER: 'Игрок',
+  MODERATOR: 'Модератор',
+  ADMIN: 'Администратор',
+  SUPER_ADMIN: 'Супер админ',
+};
 
 const schema = z.object({
   firstName: z.string().min(2),
@@ -28,7 +36,7 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-type Tab = 'profile' | 'runs' | 'participations';
+type Tab = 'profile' | 'runs' | 'participations' | 'submissions';
 
 export function ProfileContent() {
   const { isAuthenticated } = useAuth();
@@ -99,8 +107,9 @@ export function ProfileContent() {
 
   const TABS: { key: Tab; label: string }[] = [
     { key: 'profile', label: 'Профиль' },
-    { key: 'runs', label: `Open Runs (${myRunsData?.length ?? 0})` },
+    { key: 'runs', label: `Игры (${myRunsData?.length ?? 0})` },
     { key: 'participations', label: `Участия (${participationsData?.length ?? 0})` },
+    { key: 'submissions', label: 'Мои заявки' },
   ];
 
   return (
@@ -122,8 +131,8 @@ export function ProfileContent() {
                 {user?.email && (
                   <span className="text-sm text-muted-foreground">{user.email}</span>
                 )}
-                <Badge variant={user?.role === 'ADMIN' ? 'gold' : 'outline'} className="text-xs">
-                  {user?.role === 'ADMIN' ? 'Администратор' : user?.role === 'MODERATOR' ? 'Модератор' : 'Игрок'}
+                <Badge variant={user && ['ADMIN', 'SUPER_ADMIN', 'MODERATOR'].includes(user.role) ? 'gold' : 'outline'} className="text-xs">
+                  {ROLE_LABEL[user?.role ?? 'USER'] ?? 'Игрок'}
                 </Badge>
               </div>
             </div>
@@ -248,6 +257,33 @@ export function ProfileContent() {
               </Button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Submissions Tab */}
+      {tab === 'submissions' && (
+        <div className="space-y-6">
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Link href="/courts/suggest" className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/40 transition-colors">
+              <span className="w-10 h-10 rounded-lg bg-emerald-400/10 text-emerald-400 flex items-center justify-center">
+                <MapPin className="w-5 h-5" />
+              </span>
+              <div>
+                <div className="font-display font-semibold text-sm group-hover:text-primary transition-colors">Предложить корт</div>
+                <div className="text-xs text-muted-foreground">Добавь площадку на карту</div>
+              </div>
+            </Link>
+            <Link href="/news/suggest" className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/40 transition-colors">
+              <span className="w-10 h-10 rounded-lg bg-sky-400/10 text-sky-400 flex items-center justify-center">
+                <Newspaper className="w-5 h-5" />
+              </span>
+              <div>
+                <div className="font-display font-semibold text-sm group-hover:text-primary transition-colors">Предложить новость</div>
+                <div className="text-xs text-muted-foreground">Поделись новостью сообщества</div>
+              </div>
+            </Link>
+          </div>
+          <MySubmissions />
         </div>
       )}
 

@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useNews } from '@/hooks/use-news';
 import { NewsCard } from '@/components/news/news-card';
@@ -31,11 +33,19 @@ export function NewsPageContent() {
 
   return (
     <div className="container-page py-8">
-      <div className="mb-8">
-        <h1 className="font-display font-bold text-3xl md:text-4xl mb-2">
-          <span className="text-primary">Новости</span>
-        </h1>
-        <p className="text-muted-foreground">Баскетбол Узбекистана в деталях</p>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <h1 className="font-display font-bold text-3xl md:text-4xl mb-2">
+            <span className="text-primary">Новости</span>
+          </h1>
+          <p className="text-muted-foreground">Баскетбол Узбекистана в деталях</p>
+        </div>
+        <Link
+          href="/news/suggest"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          <Plus className="w-4 h-4" /> Предложить новость
+        </Link>
       </div>
 
       <div className="flex gap-2 flex-wrap mb-8 pb-4 border-b border-border">
