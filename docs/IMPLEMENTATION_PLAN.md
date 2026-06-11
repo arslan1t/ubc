@@ -6,6 +6,15 @@ Principles: **performance first**, additive DB migrations (safe on live prod), s
 
 ---
 
+## Status (live)
+- ✅ **Phase 0** — cleanup + asset optimization (shipped)
+- ✅ **Phase 4** — community engine + alive homepage (shipped)
+- ✅ **Phase 1** — RBAC (5 roles, hierarchy) + moderation backbone + dashboard (shipped)
+- ⏭️ **Phase 3** — user contribution flows (next, per founder sequence 2→1→3→4)
+- ⬜ Phase 2 (storage/photos), Phase 5 (tournaments), Phase 6 (design/mobile), Phase 7 (news pro)
+
+---
+
 ## Phase 0 — Cleanup & foundation fixes (fast, zero-risk) ✅ low effort
 1. Delete dead code (`components/ui/ubc-logo.tsx`).
 2. Resolve `/open-runs` ↔ `/pickup-games` duplication → one canonical route (`/pickup-games`), other redirects.
