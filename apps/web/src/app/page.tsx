@@ -19,11 +19,9 @@ const FEATURE_CARDS = [
     sub: 'Видео и фото',
     desc: 'Хайлайты, репортажи и фото из мира узбекского баскетбола',
     icon: Camera,
-    gradient: 'from-violet-600/20 to-transparent',
-    border: 'border-violet-500/15 hover:border-violet-400/35',
     iconColor: 'text-violet-400',
-    iconBg: 'bg-violet-500/10',
-    arrowColor: 'text-violet-400',
+    glowHex: '#a78bfa',
+    glowRgb: '167,139,250',
   },
   {
     href: '/events',
@@ -31,11 +29,9 @@ const FEATURE_CARDS = [
     sub: 'Ивенты',
     desc: 'Турниры, тренировки и события по всему Узбекистану',
     icon: CalendarDays,
-    gradient: 'from-sky-600/20 to-transparent',
-    border: 'border-sky-500/15 hover:border-sky-400/35',
     iconColor: 'text-sky-400',
-    iconBg: 'bg-sky-500/10',
-    arrowColor: 'text-sky-400',
+    glowHex: '#38bdf8',
+    glowRgb: '56,189,248',
   },
   {
     href: '/courts',
@@ -43,11 +39,9 @@ const FEATURE_CARDS = [
     sub: 'Корты',
     desc: 'Лучшие баскетбольные площадки — найди ближайший корт',
     icon: MapPin,
-    gradient: 'from-emerald-600/20 to-transparent',
-    border: 'border-emerald-500/15 hover:border-emerald-400/35',
     iconColor: 'text-emerald-400',
-    iconBg: 'bg-emerald-500/10',
-    arrowColor: 'text-emerald-400',
+    glowHex: '#34d399',
+    glowRgb: '52,211,153',
   },
   {
     href: '/pickup-games',
@@ -55,11 +49,9 @@ const FEATURE_CARDS = [
     sub: 'Открытые игры',
     desc: 'Записывайся на игру или организуй свой Pickup Run',
     icon: Zap,
-    gradient: 'from-amber-600/20 to-transparent',
-    border: 'border-primary/15 hover:border-primary/40',
     iconColor: 'text-primary',
-    iconBg: 'bg-primary/10',
-    arrowColor: 'text-primary',
+    glowHex: '#d4a11e',
+    glowRgb: '212,161,30',
   },
   {
     href: '/news',
@@ -67,11 +59,9 @@ const FEATURE_CARDS = [
     sub: 'Новости',
     desc: 'Последние события и аналитика узбекского баскетбола',
     icon: Newspaper,
-    gradient: 'from-rose-600/20 to-transparent',
-    border: 'border-rose-500/15 hover:border-rose-400/35',
     iconColor: 'text-rose-400',
-    iconBg: 'bg-rose-500/10',
-    arrowColor: 'text-rose-400',
+    glowHex: '#fb7185',
+    glowRgb: '251,113,133',
   },
   {
     href: '/players',
@@ -79,11 +69,9 @@ const FEATURE_CARDS = [
     sub: 'Игроки',
     desc: 'Рейтинг и профили лучших игроков баскетбольного сообщества',
     icon: Users,
-    gradient: 'from-slate-600/20 to-transparent',
-    border: 'border-slate-500/15 hover:border-slate-400/35',
     iconColor: 'text-slate-300',
-    iconBg: 'bg-slate-500/10',
-    arrowColor: 'text-slate-300',
+    glowHex: '#cbd5e1',
+    glowRgb: '203,213,225',
   },
 ];
 
@@ -237,40 +225,81 @@ export default function HomePage() {
       <section className="section-padding">
         <div className="container-page">
           <div className="mb-10">
-            <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">Платформа</p>
-            <h2 className="font-display font-black text-3xl md:text-4xl">
-              Всё в одном месте
-            </h2>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary mb-3">Платформа</p>
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+              <h2 className="font-display font-black text-4xl md:text-5xl leading-[0.92] tracking-tight">
+                Всё в одном <span className="gradient-gold">месте</span>
+              </h2>
+              <p className="text-sm text-white/30 sm:text-right leading-relaxed">
+                Всё баскетбольное<br className="hidden sm:block" /> сообщество Узбекистана
+              </p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
             {FEATURE_CARDS.map((card) => {
               const Icon = card.icon;
               return (
                 <Link
                   key={card.href}
                   href={card.href}
-                  className="group relative overflow-hidden bg-card p-7 transition-all duration-300 hover:bg-[#1e1e1e]"
+                  className="glass-card group relative overflow-hidden rounded-3xl"
                 >
-                  {/* Gradient accent */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                  {/* Colored ambient glow — blooms on hover */}
+                  <div
+                    className="absolute -top-14 -left-14 w-44 h-44 rounded-full blur-3xl opacity-0 group-hover:opacity-25 transition-opacity duration-500 pointer-events-none"
+                    style={{ backgroundColor: card.glowHex }}
+                  />
 
-                  <div className="relative">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-5 ${card.iconBg}`}>
-                      <Icon className={`w-5 h-5 ${card.iconColor}`} />
+                  {/* Top specular edge — sharp light line at the top of the panel */}
+                  <div
+                    className="absolute top-0 left-8 right-8 h-px pointer-events-none"
+                    style={{
+                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)',
+                    }}
+                  />
+
+                  {/* Diagonal refraction — curved glass illusion */}
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: 'linear-gradient(145deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(255,255,255,0.02) 100%)',
+                    }}
+                  />
+
+                  <div className="relative p-8">
+                    {/* Icon — 64px glassmorphic container with colored ambient glow */}
+                    <div
+                      className="relative w-16 h-16 rounded-2xl mb-7 flex items-center justify-center overflow-hidden"
+                      style={{
+                        background: `linear-gradient(135deg, rgba(${card.glowRgb},0.18) 0%, rgba(${card.glowRgb},0.06) 100%)`,
+                        border: '1px solid rgba(255,255,255,0.13)',
+                        boxShadow: `0 0 24px rgba(${card.glowRgb},0.22), inset 0 1px 0 rgba(255,255,255,0.22)`,
+                        backdropFilter: 'blur(8px)',
+                        WebkitBackdropFilter: 'blur(8px)',
+                      }}
+                    >
+                      {/* Inner glow pulse on hover */}
+                      <div
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                        style={{
+                          background: `radial-gradient(circle at 50% 50%, rgba(${card.glowRgb},0.35), transparent 70%)`,
+                        }}
+                      />
+                      <Icon className={`w-7 h-7 ${card.iconColor} relative z-10`} />
                     </div>
 
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-2">
                       {card.sub}
                     </p>
-                    <h3 className="font-display font-black text-lg leading-tight mb-2.5 text-white">
+                    <h3 className="font-display font-black text-xl text-white leading-tight mb-3">
                       {card.label}
                     </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <p className="text-sm text-white/40 leading-relaxed">
                       {card.desc}
                     </p>
 
-                    <div className={`mt-6 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide ${card.arrowColor} opacity-50 group-hover:opacity-100 group-hover:gap-3 transition-all`}>
+                    <div className={`mt-7 flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${card.iconColor} opacity-40 group-hover:opacity-100 group-hover:gap-3.5 transition-all duration-300`}>
                       Explore <ArrowRight className="w-3.5 h-3.5" />
                     </div>
                   </div>
