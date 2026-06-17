@@ -43,9 +43,41 @@ const ITEMS = [
   { key: 'news', label: 'материалов', sublabel: 'о баскетболе', icon: Newspaper, color: 'text-violet-400', bg: 'bg-violet-400/10' },
 ] as const;
 
-export function CommunityStats({ className }: { className?: string }) {
+export function CommunityStats({ className, inline }: { className?: string; inline?: boolean }) {
   const { data, isLoading } = useCommunityOverview();
   const stats = data?.stats;
+
+  if (inline) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+        className={cn(
+          'flex items-center divide-x divide-white/10 rounded-2xl border border-white/10 bg-black/30 backdrop-blur-xl overflow-hidden',
+          className,
+        )}
+      >
+        {ITEMS.map(({ key, label, sublabel, icon: Icon, color }, i) => {
+          const value = stats?.[key] ?? 0;
+          return (
+            <div key={key} className="flex items-center gap-3 px-5 py-3.5 flex-1">
+              <Icon className={cn('w-4 h-4 shrink-0', color)} />
+              <div>
+                <div className="font-display font-black text-xl tabular-nums leading-none text-white">
+                  {isLoading ? '—' : <AnimatedNumber value={value} />}
+                </div>
+                <div className="text-[10px] text-white/40 mt-0.5 leading-none">
+                  <span className={cn('font-semibold', color)}>{label}</span>
+                  {' '}{sublabel}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -64,7 +96,6 @@ export function CommunityStats({ className }: { className?: string }) {
             transition={{ duration: 0.4, delay: 0.35 + i * 0.07 }}
             className="relative overflow-hidden rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm p-4 flex flex-col gap-2.5"
           >
-            {/* Subtle radial glow behind icon */}
             <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center', bg)}>
               <Icon className={cn('w-4.5 h-4.5', color)} />
             </div>

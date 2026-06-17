@@ -14,9 +14,9 @@
     --popover: 220 12% 7%;
     --popover-foreground: 0 0% 96%;
 
-    /* Gold — vibrant, not muted */
-    --primary: 43 85% 53%;
-    --primary-foreground: 220 15% 3%;
+    /* Basketball orange — vivid, energetic */
+    --primary: 22 100% 52%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 220 10% 12%;
     --secondary-foreground: 0 0% 80%;
@@ -32,7 +32,7 @@
 
     --border: 220 10% 14%;
     --input: 220 10% 10%;
-    --ring: 43 85% 53%;
+    --ring: 22 100% 52%;
 
     --radius: 0.75rem;
   }
@@ -54,7 +54,7 @@
   }
 
   ::selection {
-    background: hsl(43 85% 53% / 0.3);
+    background: hsl(22 100% 52% / 0.3);
     color: hsl(0 0% 96%);
   }
 }
@@ -105,7 +105,7 @@
   .bg-court-gradient {
     background: radial-gradient(
       ellipse at 50% 0%,
-      hsl(43 85% 53% / 0.08) 0%,
+      hsl(22 100% 52% / 0.08) 0%,
       transparent 70%
     );
   }
@@ -124,8 +124,8 @@
     background-image:
       repeating-linear-gradient(
         90deg,
-        hsl(43 85% 53% / 0.04) 0px,
-        hsl(43 85% 53% / 0.04) 1px,
+        hsl(22 100% 52% / 0.04) 0px,
+        hsl(22 100% 52% / 0.04) 1px,
         transparent 1px,
         transparent 80px
       );
@@ -133,15 +133,15 @@
 
   /* ─── Glow effects ─── */
   .glow-gold {
-    box-shadow: 0 0 40px hsl(43 85% 53% / 0.25);
+    box-shadow: 0 0 40px hsl(22 100% 52% / 0.25);
   }
 
   .glow-gold-sm {
-    box-shadow: 0 0 16px hsl(43 85% 53% / 0.2);
+    box-shadow: 0 0 16px hsl(22 100% 52% / 0.2);
   }
 
   .text-glow {
-    text-shadow: 0 0 40px hsl(43 85% 53% / 0.6);
+    text-shadow: 0 0 40px hsl(22 100% 52% / 0.6);
   }
 
   /* ─── Live / pulse ─── */
@@ -159,7 +159,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      hsl(43 85% 53% / 0.3),
+      hsl(22 100% 52% / 0.3),
       transparent
     );
   }
@@ -200,8 +200,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px hsl(43 85% 53% / 0.2); }
-  50% { box-shadow: 0 0 40px hsl(43 85% 53% / 0.4); }
+  0%, 100% { box-shadow: 0 0 20px hsl(22 100% 52% / 0.2); }
+  50% { box-shadow: 0 0 40px hsl(22 100% 52% / 0.4); }
 }
 
 /* Loading shimmer for skeletons */
