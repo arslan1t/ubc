@@ -54,7 +54,7 @@ export function CommunityStats({ className, inline }: { className?: string; inli
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.5 }}
         className={cn(
-          'flex items-center divide-x divide-white/10 rounded-2xl border border-white/10 bg-black/30 backdrop-blur-xl overflow-hidden',
+          'flex items-center divide-x divide-white/[0.07] rounded-2xl overflow-hidden liquid-glass-bar',
           className,
         )}
       >

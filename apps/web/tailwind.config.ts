@@ -96,8 +96,8 @@ const config: Config = {
           '50%': { transform: 'translateY(-8px)' },
         },
         'pulse-glow': {
-          '0%, 100%': { boxShadow: '0 0 20px hsl(22 100% 52% / 0.2)' },
-          '50%': { boxShadow: '0 0 40px hsl(22 100% 52% / 0.45)' },
+          '0%, 100%': { boxShadow: '0 0 20px hsl(43 75% 47% / 0.2)' },
+          '50%': { boxShadow: '0 0 40px hsl(43 75% 47% / 0.45)' },
         },
         'count-up': {
           from: { opacity: '0', transform: 'translateY(4px)' },
@@ -123,8 +123,8 @@ const config: Config = {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
         'court-grid': `
-          repeating-linear-gradient(0deg, hsl(22 100% 52% / 0.04) 0px, hsl(22 100% 52% / 0.04) 1px, transparent 1px, transparent 60px),
-          repeating-linear-gradient(90deg, hsl(22 100% 52% / 0.04) 0px, hsl(22 100% 52% / 0.04) 1px, transparent 1px, transparent 60px)
+          repeating-linear-gradient(0deg, hsl(43 75% 47% / 0.04) 0px, hsl(43 75% 47% / 0.04) 1px, transparent 1px, transparent 60px),
+          repeating-linear-gradient(90deg, hsl(43 75% 47% / 0.04) 0px, hsl(43 75% 47% / 0.04) 1px, transparent 1px, transparent 60px)
         `,
       },
     },

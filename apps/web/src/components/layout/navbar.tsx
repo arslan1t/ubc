@@ -44,11 +44,23 @@ export function Navbar() {
     <>
       <header
         className={cn(
-          'fixed top-0 inset-x-0 z-50 transition-all duration-300',
+          'fixed top-0 inset-x-0 z-50 transition-all duration-500',
           scrolled
-            ? 'bg-background/95 backdrop-blur-xl border-b border-border/60 shadow-[0_1px_0_hsl(22_100%_52%/0.1)]'
-            : 'bg-black/30 backdrop-blur-sm',
+            ? 'shadow-[0_1px_0_hsl(43_75%_47%/0.08)]'
+            : '',
         )}
+        style={scrolled ? {
+          background: 'rgba(10, 10, 10, 0.82)',
+          backdropFilter: 'blur(40px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          boxShadow: 'inset 0 -1px 0 rgba(255,255,255,0.04)',
+        } : {
+          background: 'rgba(10, 10, 10, 0.22)',
+          backdropFilter: 'blur(20px) saturate(150%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(150%)',
+          borderBottom: '1px solid rgba(255,255,255,0.05)',
+        }}
       >
         <div className="container-page flex h-16 items-center justify-between gap-4">
           {/* Logo */}
@@ -198,7 +210,7 @@ export function Navbar() {
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="px-4 py-1.5 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary/90 transition-all hover:shadow-[0_0_20px_hsl(22_100%_52%/0.4)]"
+                  className="px-4 py-1.5 text-sm font-bold bg-primary text-[#0a0a0a] rounded-lg hover:bg-primary/90 transition-all hover:shadow-[0_0_20px_hsl(43_75%_47%/0.4)]"
                 >
                   Sign Up
                 </Link>
