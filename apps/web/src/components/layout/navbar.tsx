@@ -4,20 +4,19 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Menu, X, User, LogOut, ChevronDown, Zap, Shield } from 'lucide-react';
+import { Menu, X, User, LogOut, Search, Bell, ChevronDown, Zap, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuth, useLogout, useMe } from '@/hooks/use-auth';
 import { getInitials } from '@/lib/utils';
 
 const NAV_LINKS = [
-  { href: '/courts', label: 'Корты' },
+  { href: '/courts', label: 'Courts' },
   { href: '/pickup-games', label: 'Pickup Games', hot: true },
-  { href: '/news', label: 'Новости' },
-  { href: '/media', label: 'Медиа' },
-  { href: '/players', label: 'Игроки' },
-  { href: '/ranking', label: 'Ранг' },
-  { href: '/events', label: 'Ивенты' },
+  { href: '/events', label: 'Events' },
+  { href: '/media', label: 'Media' },
+  { href: '/players', label: 'Players' },
+  { href: '/news', label: 'News' },
 ];
 
 export function Navbar() {
@@ -47,30 +46,35 @@ export function Navbar() {
         className={cn(
           'fixed top-0 inset-x-0 z-50 transition-all duration-300',
           scrolled
-            ? 'bg-background/95 backdrop-blur-xl border-b border-border/60 shadow-[0_1px_0_hsl(43_85%_53%/0.08)]'
-            : 'bg-transparent',
+            ? 'bg-background/95 backdrop-blur-xl border-b border-border/60 shadow-[0_1px_0_hsl(22_100%_52%/0.1)]'
+            : 'bg-black/30 backdrop-blur-sm',
         )}
       >
         <div className="container-page flex h-16 items-center justify-between gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0 group">
-            <Image
-              src="/logo.png"
-              alt="UBC"
-              width={38}
-              height={38}
-              className="h-9 w-9 object-contain transition-transform duration-300 group-hover:scale-110"
-              priority
-            />
+          <Link href="/" className="flex items-center gap-3 shrink-0 group">
+            <div className="relative w-9 h-9">
+              <Image
+                src="/logo.png"
+                alt="UBC"
+                width={38}
+                height={38}
+                className="h-9 w-9 object-contain transition-transform duration-300 group-hover:scale-110"
+                priority
+              />
+            </div>
             <div className="hidden sm:block leading-none">
-              <div className="font-display font-black text-lg tracking-tight">
-                <span className="text-primary">U</span>BC
+              <div className="font-display font-black text-base tracking-tight text-white leading-none">
+                UBC
+              </div>
+              <div className="text-[9px] font-bold uppercase tracking-widest text-white/50 leading-none mt-0.5">
+                Uzbek Basketball Culture
               </div>
             </div>
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-1">
+          <nav className="hidden lg:flex items-center gap-0.5">
             {NAV_LINKS.map((link) => {
               const active = pathname === link.href || pathname.startsWith(link.href + '/');
               return (
@@ -78,20 +82,20 @@ export function Navbar() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    'relative px-3 py-1.5 text-xs font-semibold uppercase tracking-widest transition-colors rounded-md',
+                    'relative px-3.5 py-2 text-xs font-semibold uppercase tracking-wider transition-colors rounded-md',
                     active
                       ? 'text-primary'
-                      : 'text-muted-foreground hover:text-foreground',
+                      : 'text-white/60 hover:text-white',
                   )}
                 >
                   {link.hot && (
-                    <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                   )}
                   {link.label}
                   {active && (
                     <motion.div
                       layoutId="nav-underline"
-                      className="absolute bottom-0 left-3 right-3 h-px bg-primary"
+                      className="absolute bottom-0 left-3.5 right-3.5 h-px bg-primary"
                       transition={{ type: 'spring', stiffness: 400, damping: 35 }}
                     />
                   )}
@@ -101,7 +105,17 @@ export function Navbar() {
           </nav>
 
           {/* Right side */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            {/* Search icon */}
+            <button className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors">
+              <Search className="w-4 h-4" />
+            </button>
+
+            {/* Bell icon */}
+            <button className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors">
+              <Bell className="w-4 h-4" />
+            </button>
+
             {isAdmin && (
               <Link
                 href="/admin"
@@ -112,19 +126,22 @@ export function Navbar() {
               </Link>
             )}
 
+            {/* Separator */}
+            <div className="hidden lg:block w-px h-5 bg-white/15 mx-1" />
+
             {isAuthenticated ? (
               <div className="relative hidden lg:block">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium hover:bg-secondary transition-colors"
+                  className="flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium hover:bg-white/10 transition-colors"
                 >
                   <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold ring-1 ring-primary/30">
                     {user?.firstName?.[0]}{user?.lastName?.[0]}
                   </div>
-                  <span className="max-w-20 truncate text-muted-foreground group-hover:text-foreground">
+                  <span className="max-w-20 truncate text-white/70">
                     {user?.firstName}
                   </span>
-                  <ChevronDown className={cn('w-3.5 h-3.5 text-muted-foreground transition-transform duration-200', userMenuOpen && 'rotate-180')} />
+                  <ChevronDown className={cn('w-3.5 h-3.5 text-white/40 transition-transform duration-200', userMenuOpen && 'rotate-180')} />
                 </button>
 
                 <AnimatePresence>
@@ -175,22 +192,22 @@ export function Navbar() {
               <div className="hidden lg:flex items-center gap-2">
                 <Link
                   href="/auth/login"
-                  className="px-4 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className="px-4 py-1.5 text-sm font-semibold text-white/70 hover:text-white transition-colors"
                 >
-                  Войти
+                  Login
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="px-4 py-1.5 text-sm font-semibold bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all hover:shadow-[0_0_20px_hsl(43_85%_53%/0.4)]"
+                  className="px-4 py-1.5 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary/90 transition-all hover:shadow-[0_0_20px_hsl(22_100%_52%/0.4)]"
                 >
-                  Регистрация
+                  Sign Up
                 </Link>
               </div>
             )}
 
             <button
               onClick={() => setOpen(!open)}
-              className="lg:hidden p-2 rounded-xl hover:bg-secondary transition-colors"
+              className="lg:hidden p-2 rounded-xl hover:bg-white/10 transition-colors"
               aria-label="Меню"
             >
               <AnimatePresence mode="wait" initial={false}>
@@ -202,7 +219,7 @@ export function Navbar() {
                     exit={{ rotate: 90, opacity: 0 }}
                     transition={{ duration: 0.15 }}
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-5 h-5 text-white" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -212,7 +229,7 @@ export function Navbar() {
                     exit={{ rotate: -90, opacity: 0 }}
                     transition={{ duration: 0.15 }}
                   >
-                    <Menu className="w-5 h-5" />
+                    <Menu className="w-5 h-5 text-white" />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -240,11 +257,12 @@ export function Navbar() {
               className="fixed right-0 top-0 bottom-0 z-50 w-72 bg-card border-l border-border shadow-2xl lg:hidden flex flex-col"
             >
               <div className="flex items-center justify-between p-4 border-b border-border/60">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                   <Image src="/logo.png" alt="UBC" width={32} height={32} className="h-8 w-8 object-contain" />
-                  <span className="font-display font-black text-lg">
-                    <span className="text-primary">U</span>BC
-                  </span>
+                  <div>
+                    <div className="font-display font-black text-base leading-none">UBC</div>
+                    <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Uzbek Basketball</div>
+                  </div>
                 </div>
                 <button onClick={() => setOpen(false)} className="p-2 rounded-xl hover:bg-secondary transition-colors">
                   <X className="w-4 h-4" />
@@ -317,15 +335,15 @@ export function Navbar() {
                   <div className="space-y-2">
                     <Link
                       href="/auth/login"
-                      className="block w-full text-center rounded-xl px-4 py-2.5 text-sm font-medium hover:bg-secondary transition-colors"
+                      className="block w-full text-center rounded-xl px-4 py-2.5 text-sm font-semibold hover:bg-secondary transition-colors"
                     >
-                      Войти
+                      Login
                     </Link>
                     <Link
                       href="/auth/register"
-                      className="block w-full text-center rounded-xl px-4 py-2.5 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                      className="block w-full text-center rounded-xl px-4 py-2.5 text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors"
                     >
-                      Регистрация
+                      Sign Up
                     </Link>
                   </div>
                 )}

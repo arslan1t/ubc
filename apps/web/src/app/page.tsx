@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, MapPin, Zap, Activity, ChevronRight } from 'lucide-react';
+import { ArrowRight, MapPin, Zap, Activity, ChevronRight, Video, CalendarDays, Trophy, Newspaper, Users, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CommunityStats } from '@/components/home/community-stats';
 import { ActivityFeed } from '@/components/home/activity-feed';
@@ -9,97 +9,252 @@ import { PopularCourts } from '@/components/home/popular-courts';
 import { LatestNews } from '@/components/home/latest-news';
 import { LatestMedia } from '@/components/home/latest-media';
 
+const FEATURE_CARDS = [
+  {
+    href: '/media',
+    label: 'MEDIA',
+    sub: 'Видео и фото',
+    desc: 'Хайлайты, репортажи и фото из мира узбекского баскетбола',
+    icon: Camera,
+    gradient: 'from-violet-600/30 to-violet-900/10',
+    border: 'border-violet-500/20 hover:border-violet-400/40',
+    iconColor: 'text-violet-400',
+    iconBg: 'bg-violet-500/15',
+  },
+  {
+    href: '/events',
+    label: 'EVENTS',
+    sub: 'Ивенты',
+    desc: 'Турниры, тренировки и баскетбольные события по всему Узбекистану',
+    icon: CalendarDays,
+    gradient: 'from-sky-600/30 to-sky-900/10',
+    border: 'border-sky-500/20 hover:border-sky-400/40',
+    iconColor: 'text-sky-400',
+    iconBg: 'bg-sky-500/15',
+  },
+  {
+    href: '/courts',
+    label: 'COURTS',
+    sub: 'Корты',
+    desc: 'Найди лучшие баскетбольные площадки рядом с тобой',
+    icon: MapPin,
+    gradient: 'from-emerald-600/30 to-emerald-900/10',
+    border: 'border-emerald-500/20 hover:border-emerald-400/40',
+    iconColor: 'text-emerald-400',
+    iconBg: 'bg-emerald-500/15',
+  },
+  {
+    href: '/pickup-games',
+    label: 'PICKUP GAMES',
+    sub: 'Игры',
+    desc: 'Открытые игры — записывайся или организуй свой Pickup Run',
+    icon: Zap,
+    gradient: 'from-orange-600/30 to-orange-900/10',
+    border: 'border-primary/20 hover:border-primary/50',
+    iconColor: 'text-primary',
+    iconBg: 'bg-primary/15',
+  },
+  {
+    href: '/news',
+    label: 'NEWS',
+    sub: 'Новости',
+    desc: 'Последние события и аналитика узбекского баскетбола',
+    icon: Newspaper,
+    gradient: 'from-amber-600/30 to-amber-900/10',
+    border: 'border-amber-500/20 hover:border-amber-400/40',
+    iconColor: 'text-amber-400',
+    iconBg: 'bg-amber-500/15',
+  },
+  {
+    href: '/players',
+    label: 'PLAYERS',
+    sub: 'Игроки',
+    desc: 'Рейтинг и профили лучших игроков баскетбольного сообщества',
+    icon: Users,
+    gradient: 'from-rose-600/30 to-rose-900/10',
+    border: 'border-rose-500/20 hover:border-rose-400/40',
+    iconColor: 'text-rose-400',
+    iconBg: 'bg-rose-500/15',
+  },
+];
+
 export default function HomePage() {
   return (
     <>
       {/* ─── Hero ─── */}
-      <section className="relative overflow-hidden min-h-[92vh] flex items-center">
-        <video
-          autoPlay muted loop playsInline preload="metadata"
-          poster="/hero-poster.jpg"
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source src="/background.mp4" type="video/mp4" />
-        </video>
+      <section className="relative overflow-hidden" style={{ minHeight: 'calc(100vh - 64px)' }}>
+        {/* Background image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/main.png')" }}
+        />
 
         {/* Layered overlays */}
-        <div className="absolute inset-0 bg-black/60" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-background" />
-        {/* Subtle court-line radial */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_60%,hsl(43_85%_53%/0.07)_0%,transparent_65%)]" />
+        <div className="absolute inset-0 bg-black/55" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
 
-        <div className="container-page relative z-10 w-full">
-          <div className="flex flex-col items-center text-center py-28 md:py-32 gap-8">
-            {/* Eyebrow tag */}
-            <div
-              className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-primary animate-fade-in"
-              style={{ animationDelay: '0.05s', opacity: 0 }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Узбекистан · Баскетбол · Культура
-            </div>
+        <div className="container-page relative z-10 h-full flex flex-col justify-between py-12 md:py-16"
+          style={{ minHeight: 'calc(100vh - 64px)' }}>
 
-            {/* Main heading */}
-            <div
-              className="animate-fade-in"
-              style={{ animationDelay: '0.15s', opacity: 0 }}
-            >
-              <h1 className="font-display font-black leading-[0.9] tracking-tighter">
-                <span className="block text-5xl md:text-7xl lg:text-[6.5rem] text-white">
-                  UZBEK
-                </span>
-                <span className="block text-5xl md:text-7xl lg:text-[6.5rem]" style={{
-                  background: 'linear-gradient(135deg, hsl(43 85% 70%), hsl(43 85% 45%))',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}>
-                  BASKETBALL
-                </span>
-                <span className="block text-5xl md:text-7xl lg:text-[6.5rem] text-white">
-                  CULTURE
-                </span>
-              </h1>
-            </div>
+          {/* Main content row */}
+          <div className="flex-1 flex items-center">
+            <div className="w-full grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
-            <p
-              className="text-white/60 text-base md:text-xl max-w-xl leading-relaxed animate-fade-in"
-              style={{ animationDelay: '0.25s', opacity: 0 }}
-            >
-              Единая экосистема баскетбола Узбекистана.
-              Находи корты, организуй игры, строй сообщество.
-            </p>
+              {/* LEFT — Hero text */}
+              <div className="max-w-xl">
+                {/* Eyebrow */}
+                <div
+                  className="inline-flex items-center gap-2 mb-6 animate-fade-in"
+                  style={{ animationDelay: '0.05s', opacity: 0 }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/50">
+                    Uzbek Basketball Culture
+                  </span>
+                </div>
 
-            <div
-              className="flex flex-col sm:flex-row gap-3 animate-fade-in"
-              style={{ animationDelay: '0.35s', opacity: 0 }}
-            >
-              <Button asChild variant="gold" size="xl" className="rounded-2xl text-base font-bold shadow-[0_0_40px_hsl(43_85%_53%/0.35)] hover:shadow-[0_0_60px_hsl(43_85%_53%/0.55)] transition-all">
-                <Link href="/pickup-games">
-                  <Zap className="w-5 h-5 mr-2" />
-                  Найти игру
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="xl" className="rounded-2xl border-white/20 text-white hover:bg-white/10 hover:border-white/40 hover:text-white text-base font-semibold backdrop-blur-sm">
-                <Link href="/courts">
-                  <MapPin className="w-5 h-5 mr-2" />
-                  Корты
-                </Link>
-              </Button>
+                {/* Main heading */}
+                <h1
+                  className="font-display font-black leading-[0.92] tracking-tighter mb-6 animate-fade-in"
+                  style={{ animationDelay: '0.12s', opacity: 0 }}
+                >
+                  <span className="block text-[clamp(2.8rem,7vw,5.5rem)] text-white">
+                    ONE CULTURE.
+                  </span>
+                  <span className="block text-[clamp(2.8rem,7vw,5.5rem)] text-white">
+                    ONE GAME.
+                  </span>
+                  <span
+                    className="block text-[clamp(2.8rem,7vw,5.5rem)]"
+                    style={{
+                      background: 'linear-gradient(135deg, hsl(22 100% 65%), hsl(22 100% 48%))',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                    }}
+                  >
+                    ONE COMMUNITY.
+                  </span>
+                </h1>
+
+                <p
+                  className="text-white/55 text-base md:text-lg leading-relaxed mb-8 animate-fade-in"
+                  style={{ animationDelay: '0.22s', opacity: 0 }}
+                >
+                  Единая экосистема баскетбола Узбекистана.
+                  Находи корты, организуй игры, строй сообщество.
+                </p>
+
+                <div
+                  className="flex flex-wrap gap-3 animate-fade-in"
+                  style={{ animationDelay: '0.32s', opacity: 0 }}
+                >
+                  <Link
+                    href="/pickup-games"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-bold text-sm uppercase tracking-wide hover:bg-primary/90 transition-all shadow-[0_0_30px_hsl(22_100%_52%/0.35)] hover:shadow-[0_0_50px_hsl(22_100%_52%/0.55)]"
+                  >
+                    <Zap className="w-4 h-4" />
+                    Find a Game
+                  </Link>
+                  <Link
+                    href="/courts"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-white/20 text-white font-semibold text-sm uppercase tracking-wide hover:bg-white/10 hover:border-white/40 transition-all backdrop-blur-sm"
+                  >
+                    <MapPin className="w-4 h-4" />
+                    Explore Courts
+                  </Link>
+                </div>
+              </div>
+
+              {/* RIGHT — Live Activities panel */}
+              <div
+                className="hidden lg:block animate-fade-in"
+                style={{ animationDelay: '0.4s', opacity: 0 }}
+              >
+                <div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl overflow-hidden">
+                  <div className="flex items-center gap-2 px-5 py-4 border-b border-white/10">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+                    </span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-white/80">
+                      Live Activities
+                    </span>
+                  </div>
+                  <div className="p-2">
+                    <ActivityFeed compact />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Bottom fade to background */}
-        <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+          {/* Bottom — Stats bar */}
+          <div
+            className="animate-fade-in"
+            style={{ animationDelay: '0.5s', opacity: 0 }}
+          >
+            <CommunityStats inline />
+          </div>
+        </div>
       </section>
 
-      {/* ─── Stats — overlapping hero bottom ─── */}
-      <section className="relative z-20 -mt-10 md:-mt-14">
+      {/* ─── Feature Cards Grid ─── */}
+      <section className="section-padding">
         <div className="container-page">
-          <CommunityStats />
+          <div className="mb-10 text-center">
+            <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">Платформа</p>
+            <h2 className="font-display font-black text-3xl md:text-4xl">
+              Всё баскетбольное сообщество
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {FEATURE_CARDS.map((card) => {
+              const Icon = card.icon;
+              return (
+                <Link
+                  key={card.href}
+                  href={card.href}
+                  className={`group relative overflow-hidden rounded-2xl border bg-card/60 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${card.border}`}
+                >
+                  {/* Gradient background */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-60 group-hover:opacity-100 transition-opacity duration-300`} />
+
+                  <div className="relative">
+                    {/* Icon */}
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${card.iconBg}`}>
+                      <Icon className={`w-5 h-5 ${card.iconColor}`} />
+                    </div>
+
+                    {/* Labels */}
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
+                      {card.sub}
+                    </p>
+                    <h3 className="font-display font-black text-lg leading-tight mb-2 text-white">
+                      {card.label}
+                    </h3>
+                    <p className="text-sm text-white/50 leading-relaxed">
+                      {card.desc}
+                    </p>
+
+                    {/* Arrow */}
+                    <div className={`mt-5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide ${card.iconColor} opacity-70 group-hover:opacity-100 transition-all group-hover:gap-2.5`}>
+                      Explore <ArrowRight className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </section>
+
+      {/* ─── Divider ─── */}
+      <div className="container-page">
+        <div className="divider-court" />
+      </div>
 
       {/* ─── Live Section ─── */}
       <section className="section-padding">
@@ -112,8 +267,9 @@ export default function HomePage() {
               </div>
               <div>
                 <h2 className="font-display font-black text-2xl md:text-3xl leading-none">
-                  Прямо <span style={{
-                    background: 'linear-gradient(135deg, hsl(43 85% 65%), hsl(43 85% 45%))',
+                  Прямо{' '}
+                  <span style={{
+                    background: 'linear-gradient(135deg, hsl(22 100% 65%), hsl(22 100% 48%))',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text',
@@ -165,7 +321,7 @@ export default function HomePage() {
       </section>
 
       {/* ─── Popular Courts ─── */}
-      <section className="section-padding bg-[radial-gradient(ellipse_at_50%_0%,hsl(43_85%_53%/0.05)_0%,transparent_70%)]">
+      <section className="section-padding bg-[radial-gradient(ellipse_at_50%_0%,hsl(22_100%_52%/0.05)_0%,transparent_70%)]">
         <div className="container-page">
           <div className="flex items-center justify-between mb-8 md:mb-10">
             <div>
@@ -206,7 +362,7 @@ export default function HomePage() {
       </section>
 
       {/* ─── Latest Media ─── */}
-      <section className="section-padding bg-[radial-gradient(ellipse_at_50%_0%,hsl(43_85%_53%/0.05)_0%,transparent_70%)]">
+      <section className="section-padding bg-[radial-gradient(ellipse_at_50%_0%,hsl(22_100%_52%/0.05)_0%,transparent_70%)]">
         <div className="container-page">
           <div className="flex items-center justify-between mb-8 md:mb-10">
             <div>
@@ -282,15 +438,15 @@ export default function HomePage() {
       <section className="section-padding">
         <div className="container-page">
           <div className="relative overflow-hidden rounded-3xl border border-primary/20 p-8 md:p-14 text-center">
-            {/* Background decoration */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,hsl(43_85%_53%/0.1)_0%,transparent_70%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,hsl(22_100%_52%/0.1)_0%,transparent_70%)]" />
             <div className="absolute inset-0 bg-court-grid opacity-60" />
 
             <div className="relative z-10">
               <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">Начни прямо сейчас</p>
               <h2 className="font-display font-black text-3xl md:text-5xl mb-4 leading-tight">
-                Готов выйти на <span style={{
-                  background: 'linear-gradient(135deg, hsl(43 85% 65%), hsl(43 85% 45%))',
+                Готов выйти на{' '}
+                <span style={{
+                  background: 'linear-gradient(135deg, hsl(22 100% 65%), hsl(22 100% 48%))',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
@@ -300,7 +456,7 @@ export default function HomePage() {
                 Создай свой первый Pickup Game и собери команду прямо сейчас.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button asChild variant="gold" size="lg" className="rounded-2xl font-bold shadow-[0_0_40px_hsl(43_85%_53%/0.3)] hover:shadow-[0_0_60px_hsl(43_85%_53%/0.5)]">
+                <Button asChild variant="gold" size="lg" className="rounded-2xl font-bold shadow-[0_0_40px_hsl(22_100%_52%/0.3)] hover:shadow-[0_0_60px_hsl(22_100%_52%/0.5)]">
                   <Link href="/pickup-games/create">
                     Создать Pickup Game
                     <ArrowRight className="w-4 h-4 ml-2" />
