@@ -1,17 +1,8 @@
-export enum OpenRunStatus {
-  DRAFT = 'DRAFT',
-  OPEN = 'OPEN',
-  CLOSED = 'CLOSED',
-  CANCELLED = 'CANCELLED',
-  COMPLETED = 'COMPLETED',
-}
+export type OpenRunStatus = 'DRAFT' | 'OPEN' | 'CLOSED' | 'CANCELLED' | 'COMPLETED';
 
-export enum ParticipantStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
-  CANCELLED = 'CANCELLED',
-}
+export type ParticipantStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'WAITLISTED';
+
+export type SkillLevel = 'ANY' | 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
 
 export interface OpenRun {
   id: string;
@@ -36,9 +27,12 @@ export interface OpenRun {
   endTime: string;
   maxParticipants: number;
   currentParticipants: number;
+  waitlistCount: number;
+  spotsLeft: number;
   fee: number;
   isPublic: boolean;
   status: OpenRunStatus;
+  skillLevel: SkillLevel;
   createdAt: Date;
 }
 
@@ -66,4 +60,5 @@ export interface CreateOpenRunDto {
   maxParticipants: number;
   fee?: number;
   isPublic: boolean;
+  skillLevel?: SkillLevel;
 }

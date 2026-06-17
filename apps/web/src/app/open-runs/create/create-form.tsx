@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { useCourts } from '@/hooks/use-courts';
 import { useCreateOpenRun } from '@/hooks/use-open-runs';
 import { useAuth } from '@/hooks/use-auth';
+import { SKILL_OPTIONS } from '@/lib/pickup';
 import Link from 'next/link';
 
 const schema = z.object({
@@ -23,6 +24,7 @@ const schema = z.object({
   maxParticipants: z.coerce.number().min(2).max(50),
   fee: z.coerce.number().min(0).optional(),
   isPublic: z.boolean(),
+  skillLevel: z.enum(['ANY', 'BEGINNER', 'INTERMEDIATE', 'ADVANCED']),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -47,6 +49,7 @@ export function CreateOpenRunForm() {
       isPublic: true,
       maxParticipants: 10,
       fee: 0,
+      skillLevel: 'ANY',
     },
   });
 
@@ -54,7 +57,7 @@ export function CreateOpenRunForm() {
     return (
       <div className="rounded-xl border border-border bg-card/30 p-8 text-center">
         <p className="text-muted-foreground mb-4">
-          Войдите, чтобы создать Open Run
+          Войдите, чтобы создать Pickup Game
         </p>
         <Button asChild>
           <Link href="/auth/login">Войти</Link>
@@ -72,8 +75,8 @@ export function CreateOpenRunForm() {
       },
       {
         onSuccess: (run: any) => {
-          toast.success('Open Run создан!');
-          router.push(`/open-runs/${run.id}`);
+          toast.success('Pickup Game создана!');
+          router.push(`/pickup-games/${run.id}`);
         },
         onError: (err: any) => {
           toast.error(err?.response?.data?.message ?? 'Ошибка');
@@ -158,10 +161,25 @@ export function CreateOpenRunForm() {
       </div>
 
       <div className="space-y-2">
+        <Label>Уровень игры</Label>
+        <select
+          {...register('skillLevel')}
+          className="w-full h-10 rounded-lg border border-input bg-input px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {SKILL_OPTIONS.map((s) => (
+            <option key={s.value} value={s.value}>{s.label}</option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">
+          Поможет игрокам найти игру под свой уровень
+        </p>
+      </div>
+
+      <div className="space-y-2">
         <Label>Описание</Label>
         <textarea
           {...register('description')}
-          placeholder="Уровень игры, что брать с собой..."
+          placeholder="Что брать с собой, как найти площадку..."
           className="w-full rounded-lg border border-input bg-input px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
           rows={3}
         />
@@ -175,9 +193,9 @@ export function CreateOpenRunForm() {
             className="w-4 h-4 rounded border-border accent-primary"
           />
           <div>
-            <div className="font-medium text-sm">Открытый Open Run</div>
+            <div className="font-medium text-sm">Открытая игра</div>
             <div className="text-xs text-muted-foreground">
-              Все желающие могут сразу записаться без одобрения
+              Все желающие записываются сразу; при заполнении — в лист ожидания
             </div>
           </div>
         </label>
@@ -185,7 +203,7 @@ export function CreateOpenRunForm() {
 
       <div className="flex gap-3">
         <Button type="submit" variant="gold" size="lg" disabled={isPending}>
-          {isPending ? 'Создаём...' : 'Создать Open Run'}
+          {isPending ? 'Создаём...' : 'Создать Pickup Game'}
         </Button>
         <Button type="button" variant="outline" size="lg" onClick={() => router.back()}>
           Отмена

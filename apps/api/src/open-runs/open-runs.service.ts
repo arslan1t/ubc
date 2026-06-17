@@ -9,10 +9,15 @@ import { PrismaService } from '../prisma/prisma.service';
 import { OpenRunStatus, ParticipantStatus } from '@prisma/client';
 import { CreateOpenRunDto, OpenRunFiltersDto } from './dto/open-run.dto';
 
+const COUNTED_STATUSES = [ParticipantStatus.APPROVED, ParticipantStatus.WAITLISTED];
+
 const OPEN_RUN_INCLUDE = {
   court: { select: { id: true, name: true, address: true, city: true } },
   organizer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
-  _count: { select: { participants: { where: { status: ParticipantStatus.APPROVED } } } },
+  participants: {
+    where: { status: { in: COUNTED_STATUSES } },
+    select: { status: true },
+  },
 };
 
 @Injectable()
@@ -28,6 +33,9 @@ export class OpenRunsService {
     if (filters.courtId) where.courtId = filters.courtId;
     if (filters.date) where.date = new Date(filters.date);
     if (filters.upcoming) where.date = { gte: new Date() };
+    if (filters.skillLevel) where.skillLevel = filters.skillLevel;
+    if (filters.isFree === 'true') where.fee = 0;
+    if (filters.isFree === 'false') where.fee = { gt: 0 };
 
     const [runs, total] = await Promise.all([
       this.prisma.openRun.findMany({
@@ -53,9 +61,18 @@ export class OpenRunsService {
     const run = await this.prisma.openRun.findUnique({
       where: { id },
       include: {
-        ...OPEN_RUN_INCLUDE,
+        court: { select: { id: true, name: true, address: true, city: true } },
+        organizer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
         participants: {
-          where: { status: { in: [ParticipantStatus.PENDING, ParticipantStatus.APPROVED] } },
+          where: {
+            status: {
+              in: [
+                ParticipantStatus.PENDING,
+                ParticipantStatus.APPROVED,
+                ParticipantStatus.WAITLISTED,
+              ],
+            },
+          },
           include: {
             user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
           },
@@ -64,13 +81,13 @@ export class OpenRunsService {
       },
     });
 
-    if (!run) throw new NotFoundException('Open Run не найден');
+    if (!run) throw new NotFoundException('Игра не найдена');
 
     if (!run.isPublic && run.organizerId !== userId) {
       const isParticipant = run.participants.some(
         (p) => p.userId === userId && p.status === ParticipantStatus.APPROVED,
       );
-      if (!isParticipant) throw new ForbiddenException('Это закрытый Open Run');
+      if (!isParticipant) throw new ForbiddenException('Это закрытая игра');
     }
 
     return this.formatRun(run);
@@ -92,6 +109,7 @@ export class OpenRunsService {
         maxParticipants: dto.maxParticipants,
         fee: dto.fee ?? 0,
         isPublic: dto.isPublic,
+        skillLevel: dto.skillLevel ?? 'ANY',
         status: OpenRunStatus.OPEN,
       },
       include: OPEN_RUN_INCLUDE,
@@ -104,7 +122,7 @@ export class OpenRunsService {
     const run = await this.getRunOrFail(id);
     if (run.organizerId !== userId) throw new ForbiddenException();
     if (run.status === OpenRunStatus.CANCELLED) {
-      throw new BadRequestException('Open Run уже отменён');
+      throw new BadRequestException('Игра уже отменена');
     }
 
     return this.prisma.openRun.update({
@@ -118,7 +136,7 @@ export class OpenRunsService {
     const run = await this.getRunOrFail(id);
     if (run.organizerId !== userId) throw new ForbiddenException();
     if (run.status !== OpenRunStatus.OPEN) {
-      throw new BadRequestException('Регистрация уже закрыта или Open Run отменён');
+      throw new BadRequestException('Регистрация уже закрыта или игра отменена');
     }
 
     return this.prisma.openRun.update({
@@ -128,6 +146,7 @@ export class OpenRunsService {
     });
   }
 
+  /** Join. Public + space → APPROVED; public + full → WAITLISTED; private → PENDING. */
   async join(id: string, userId: string) {
     const run = await this.prisma.openRun.findUnique({
       where: { id },
@@ -136,47 +155,70 @@ export class OpenRunsService {
       },
     });
 
-    if (!run) throw new NotFoundException('Open Run не найден');
+    if (!run) throw new NotFoundException('Игра не найдена');
     if (run.status !== OpenRunStatus.OPEN) {
       throw new BadRequestException('Регистрация закрыта');
     }
     if (run.organizerId === userId) {
-      throw new BadRequestException('Организатор не может записаться на свой Open Run');
+      throw new BadRequestException('Организатор уже участвует в своей игре');
     }
+
+    const isFull = run._count.participants >= run.maxParticipants;
+    const targetStatus = !run.isPublic
+      ? ParticipantStatus.PENDING
+      : isFull
+        ? ParticipantStatus.WAITLISTED
+        : ParticipantStatus.APPROVED;
 
     const existing = await this.prisma.openRunParticipant.findUnique({
       where: { openRunId_userId: { openRunId: id, userId } },
     });
+
     if (existing) {
-      if (existing.status === ParticipantStatus.CANCELLED) {
+      if (
+        existing.status === ParticipantStatus.CANCELLED ||
+        existing.status === ParticipantStatus.REJECTED
+      ) {
         return this.prisma.openRunParticipant.update({
           where: { id: existing.id },
-          data: { status: ParticipantStatus.PENDING },
+          data: { status: targetStatus },
         });
       }
-      throw new ConflictException('Вы уже подали заявку на этот Open Run');
+      throw new ConflictException('Вы уже записаны на эту игру');
     }
 
-    const approvedCount = run._count.participants;
-    if (approvedCount >= run.maxParticipants) {
-      throw new BadRequestException('Нет свободных мест');
-    }
-
-    const status = run.isPublic ? ParticipantStatus.APPROVED : ParticipantStatus.PENDING;
     return this.prisma.openRunParticipant.create({
-      data: { openRunId: id, userId, status },
+      data: { openRunId: id, userId, status: targetStatus },
     });
   }
 
+  /** Leave. If an approved player leaves a public run, promote the next waitlisted. */
   async leave(id: string, userId: string) {
     const participant = await this.prisma.openRunParticipant.findUnique({
       where: { openRunId_userId: { openRunId: id, userId } },
     });
-    if (!participant) throw new NotFoundException('Вы не записаны на этот Open Run');
+    if (!participant) throw new NotFoundException('Вы не записаны на эту игру');
 
-    await this.prisma.openRunParticipant.update({
-      where: { id: participant.id },
-      data: { status: ParticipantStatus.CANCELLED },
+    const freedSpot = participant.status === ParticipantStatus.APPROVED;
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.openRunParticipant.update({
+        where: { id: participant.id },
+        data: { status: ParticipantStatus.CANCELLED },
+      });
+
+      if (freedSpot) {
+        const next = await tx.openRunParticipant.findFirst({
+          where: { openRunId: id, status: ParticipantStatus.WAITLISTED },
+          orderBy: { createdAt: 'asc' },
+        });
+        if (next) {
+          await tx.openRunParticipant.update({
+            where: { id: next.id },
+            data: { status: ParticipantStatus.APPROVED },
+          });
+        }
+      }
     });
   }
 
@@ -200,12 +242,20 @@ export class OpenRunsService {
 
   private async getRunOrFail(id: string) {
     const run = await this.prisma.openRun.findUnique({ where: { id } });
-    if (!run) throw new NotFoundException('Open Run не найден');
+    if (!run) throw new NotFoundException('Игра не найдена');
     return run;
   }
 
-  private formatRun(run: any) {
-    const currentParticipants = run._count?.participants ?? 0;
-    return { ...run, currentParticipants };
-  }
+  // Arrow keeps `this`-free binding safe for use as a .map() callback.
+  private formatRun = (run: any) => {
+    const parts: Array<{ status: ParticipantStatus }> = run.participants ?? [];
+    const currentParticipants = parts.filter(
+      (p) => p.status === ParticipantStatus.APPROVED,
+    ).length;
+    const waitlistCount = parts.filter(
+      (p) => p.status === ParticipantStatus.WAITLISTED,
+    ).length;
+    const spotsLeft = Math.max(0, run.maxParticipants - currentParticipants);
+    return { ...run, currentParticipants, waitlistCount, spotsLeft };
+  };
 }

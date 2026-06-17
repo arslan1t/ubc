@@ -66,6 +66,14 @@ enum ParticipantStatus {
   APPROVED
   REJECTED
   CANCELLED
+  WAITLISTED
+}
+
+enum SkillLevel {
+  ANY
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
 }
 
 enum NewsCategory {
@@ -223,6 +231,7 @@ model OpenRun {
   fee             Int           @default(0)
   isPublic        Boolean       @default(true)
   status          OpenRunStatus @default(OPEN)
+  skillLevel      SkillLevel    @default(ANY)
 
   // Relations
   participants OpenRunParticipant[]

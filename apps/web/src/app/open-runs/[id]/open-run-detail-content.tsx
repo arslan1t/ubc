@@ -11,7 +11,8 @@ import {
   Calendar, Clock, MapPin, Users, Wallet, ArrowLeft,
   User, CheckCircle, XCircle, Lock,
 } from 'lucide-react';
-import { formatDate, formatPrice, getInitials, pluralize } from '@/lib/utils';
+import { formatDate, formatPrice, getInitials } from '@/lib/utils';
+import { SKILL_META, type SkillLevel } from '@/lib/pickup';
 
 const STATUS_LABELS: Record<string, { label: string; variant: any }> = {
   OPEN: { label: 'Открыт', variant: 'success' },
@@ -39,20 +40,30 @@ export function OpenRunDetailContent({ id }: { id: string }) {
   if (!run) {
     return (
       <div className="container-page py-8 text-center">
-        <p className="text-muted-foreground">Open Run не найден</p>
+        <p className="text-muted-foreground">Игра не найдена</p>
       </div>
     );
   }
 
   const isOrganizer = user?.id === run.organizerId;
   const myParticipation = run.participants?.find((p: any) => p.userId === user?.id);
-  const spotsLeft = run.maxParticipants - run.currentParticipants;
+  const spotsLeft = run.spotsLeft ?? run.maxParticipants - run.currentParticipants;
   const isFull = spotsLeft <= 0;
+  const waitlistCount = run.waitlistCount ?? 0;
+  const skill = run.skillLevel && run.skillLevel !== 'ANY' ? SKILL_META[run.skillLevel as SkillLevel] : null;
   const statusInfo = STATUS_LABELS[run.status] ?? { label: run.status, variant: 'secondary' };
 
   const handleJoin = () => {
     join(id, {
-      onSuccess: () => toast.success('Заявка отправлена!'),
+      onSuccess: (p: any) => {
+        if (p?.status === 'WAITLISTED') {
+          toast.success('Вы в листе ожидания — освободится место, и вы в игре');
+        } else if (p?.status === 'PENDING') {
+          toast.success('Заявка отправлена организатору');
+        } else {
+          toast.success('Вы записались на игру!');
+        }
+      },
       onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Ошибка'),
     });
   };
@@ -65,9 +76,9 @@ export function OpenRunDetailContent({ id }: { id: string }) {
   };
 
   const handleCancel = () => {
-    if (!confirm('Отменить Open Run?')) return;
+    if (!confirm('Отменить игру?')) return;
     cancel(id, {
-      onSuccess: () => toast.success('Open Run отменён'),
+      onSuccess: () => toast.success('Игра отменена'),
       onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Ошибка'),
     });
   };
@@ -75,11 +86,11 @@ export function OpenRunDetailContent({ id }: { id: string }) {
   return (
     <div className="container-page py-8 max-w-4xl">
       <Link
-        href="/open-runs"
+        href="/pickup-games"
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
-        Open Runs
+        Pickup Games
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -88,9 +99,16 @@ export function OpenRunDetailContent({ id }: { id: string }) {
           <div>
             <div className="flex items-start justify-between gap-4 mb-3">
               <h1 className="font-display font-bold text-2xl md:text-3xl">
-                {run.title ?? `Open Run`}
+                {run.title ?? 'Pickup Game'}
               </h1>
-              <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+              <div className="flex flex-col items-end gap-1.5 shrink-0">
+                <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+                {skill && (
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${skill.cls}`}>
+                    {skill.label}
+                  </span>
+                )}
+              </div>
             </div>
 
             <Link
@@ -165,11 +183,19 @@ export function OpenRunDetailContent({ id }: { id: string }) {
                           ? 'success'
                           : p.status === 'PENDING'
                           ? 'warning'
+                          : p.status === 'WAITLISTED'
+                          ? 'secondary'
                           : 'destructive'
                       }
                       className="text-xs"
                     >
-                      {p.status === 'APPROVED' ? 'Одобрен' : p.status === 'PENDING' ? 'Ожидает' : 'Отклонён'}
+                      {p.status === 'APPROVED'
+                        ? 'В игре'
+                        : p.status === 'PENDING'
+                        ? 'Ожидает'
+                        : p.status === 'WAITLISTED'
+                        ? 'Лист ожидания'
+                        : 'Отклонён'}
                     </Badge>
                   </div>
                 ))}
@@ -200,10 +226,16 @@ export function OpenRunDetailContent({ id }: { id: string }) {
           <div className="rounded-xl border border-border bg-card p-4 space-y-3">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Свободных мест:</span>
-              <span className={isFull ? 'text-destructive font-semibold' : 'text-green-400 font-semibold'}>
+              <span className={isFull ? 'text-amber-400 font-semibold' : 'text-emerald-400 font-semibold'}>
                 {isFull ? '0' : spotsLeft}
               </span>
             </div>
+            {waitlistCount > 0 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">В листе ожидания:</span>
+                <span className="text-amber-400 font-semibold">{waitlistCount}</span>
+              </div>
+            )}
 
             {!isAuthenticated ? (
               <Button asChild className="w-full" variant="gold">
@@ -220,7 +252,7 @@ export function OpenRunDetailContent({ id }: { id: string }) {
                     onClick={handleCancel}
                     disabled={cancelling}
                   >
-                    Отменить Open Run
+                    Отменить игру
                   </Button>
                 )}
               </div>
@@ -228,14 +260,16 @@ export function OpenRunDetailContent({ id }: { id: string }) {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   {myParticipation.status === 'APPROVED' ? (
-                    <><CheckCircle className="w-4 h-4 text-green-400" /> Вы участвуете</>
+                    <><CheckCircle className="w-4 h-4 text-emerald-400" /> Вы в игре</>
+                  ) : myParticipation.status === 'WAITLISTED' ? (
+                    <><Clock className="w-4 h-4 text-amber-400" /> Вы в листе ожидания</>
                   ) : myParticipation.status === 'PENDING' ? (
                     <><Clock className="w-4 h-4 text-yellow-400" /> Заявка рассматривается</>
                   ) : (
                     <><XCircle className="w-4 h-4 text-destructive" /> Заявка отклонена</>
                   )}
                 </div>
-                {['APPROVED', 'PENDING'].includes(myParticipation.status) && (
+                {['APPROVED', 'PENDING', 'WAITLISTED'].includes(myParticipation.status) && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -243,26 +277,28 @@ export function OpenRunDetailContent({ id }: { id: string }) {
                     onClick={handleLeave}
                     disabled={leaving}
                   >
-                    Отменить участие
+                    {myParticipation.status === 'WAITLISTED' ? 'Выйти из листа ожидания' : 'Отменить участие'}
                   </Button>
                 )}
               </div>
-            ) : run.status === 'OPEN' && !isFull ? (
+            ) : run.status === 'OPEN' ? (
               <Button
-                variant="gold"
+                variant={isFull ? 'outline' : 'gold'}
                 className="w-full"
                 onClick={handleJoin}
                 disabled={joining}
               >
-                {joining ? 'Записываемся...' : run.isPublic ? 'Записаться' : 'Подать заявку'}
+                {joining
+                  ? 'Записываемся...'
+                  : isFull
+                    ? 'В лист ожидания'
+                    : run.isPublic
+                      ? 'Записаться'
+                      : 'Подать заявку'}
               </Button>
-            ) : run.status !== 'OPEN' ? (
+            ) : (
               <p className="text-sm text-center text-muted-foreground">
                 Регистрация закрыта
-              </p>
-            ) : (
-              <p className="text-sm text-center text-destructive">
-                Мест нет
               </p>
             )}
           </div>
