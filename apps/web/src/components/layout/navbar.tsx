@@ -18,9 +18,9 @@ const NAV_LINKS = [
 ];
 
 const MORE_LINKS = [
-  { href: '/players', label: 'Players' },
-  { href: '/ranking', label: 'Rankings' },
-  { href: '/news', label: 'News' },
+  { href: '/players', label: 'Players', hot: false },
+  { href: '/ranking', label: 'Rankings', hot: false },
+  { href: '/news', label: 'News', hot: false },
 ];
 
 export function Navbar() {
@@ -342,7 +342,7 @@ export function Navbar() {
                         )}
                       >
                         {link.label}
-                        {'hot' in link && link.hot && (
+                        {link.hot && (
                           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                         )}
                       </Link>
