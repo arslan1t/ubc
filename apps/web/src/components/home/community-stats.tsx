@@ -37,10 +37,10 @@ function AnimatedNumber({ value, className }: { value: number; className?: strin
 }
 
 const ITEMS = [
-  { key: 'courts', label: 'кортов', sublabel: 'на карте', icon: MapPin, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-  { key: 'gamesThisWeek', label: 'игр', sublabel: 'на этой неделе', icon: Zap, color: 'text-primary', bg: 'bg-primary/10' },
-  { key: 'players', label: 'игроков', sublabel: 'в сообществе', icon: Users, color: 'text-sky-400', bg: 'bg-sky-400/10' },
-  { key: 'news', label: 'материалов', sublabel: 'о баскетболе', icon: Newspaper, color: 'text-violet-400', bg: 'bg-violet-400/10' },
+  { key: 'players',      label: 'Players',  sublabel: 'in the community', icon: Users,     color: 'text-sky-400',    bg: 'bg-sky-400/10'    },
+  { key: 'courts',       label: 'Courts',   sublabel: 'on the map',       icon: MapPin,    color: 'text-emerald-400',bg: 'bg-emerald-400/10'},
+  { key: 'gamesThisWeek',label: 'Games',    sublabel: 'this week',        icon: Zap,       color: 'text-primary',    bg: 'bg-primary/10'    },
+  { key: 'news',         label: 'Articles', sublabel: 'published',        icon: Newspaper, color: 'text-violet-400', bg: 'bg-violet-400/10' },
 ] as const;
 
 export function CommunityStats({ className, inline }: { className?: string; inline?: boolean }) {
@@ -58,7 +58,7 @@ export function CommunityStats({ className, inline }: { className?: string; inli
           className,
         )}
       >
-        {ITEMS.map(({ key, label, sublabel, icon: Icon, color }, i) => {
+        {ITEMS.map(({ key, label, sublabel, icon: Icon, color }) => {
           const value = stats?.[key] ?? 0;
           return (
             <div key={key} className="flex items-center gap-3 px-5 py-3.5 flex-1">
@@ -82,37 +82,50 @@ export function CommunityStats({ className, inline }: { className?: string; inli
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.3 }}
-      className={cn('grid grid-cols-2 md:grid-cols-4 gap-3', className)}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.5 }}
+      className={cn('grid grid-cols-2 md:grid-cols-4 gap-4', className)}
     >
       {ITEMS.map(({ key, label, sublabel, icon: Icon, color, bg }, i) => {
         const value = stats?.[key] ?? 0;
         return (
           <motion.div
             key={key}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.35 + i * 0.07 }}
-            className="relative overflow-hidden rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm p-4 flex flex-col gap-2.5"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: i * 0.08 }}
+            className="group relative overflow-hidden rounded-2xl p-6 cursor-default transition-transform duration-300 hover:-translate-y-1"
+            style={{
+              background: 'rgba(17,17,17,0.85)',
+              border: '1px solid rgba(212,161,30,0.12)',
+            }}
           >
-            <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center', bg)}>
-              <Icon className={cn('w-4.5 h-4.5', color)} />
+            {/* Subtle corner glow on hover */}
+            <div
+              className="absolute -top-8 -right-8 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none"
+              style={{ backgroundColor: color.replace('text-', '').includes('primary') ? '#d4a11e' : undefined }}
+            />
+
+            <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-5', bg)}>
+              <Icon className={cn('w-5 h-5', color)} />
             </div>
 
-            <div>
-              <div className="font-display font-black text-3xl md:text-4xl tabular-nums leading-none">
-                {isLoading ? (
-                  <span className="text-muted-foreground/30">—</span>
-                ) : (
-                  <AnimatedNumber value={value} />
-                )}
-              </div>
-              <div className="mt-1">
-                <span className={cn('text-xs font-semibold', color)}>{label}</span>
-                <span className="text-xs text-muted-foreground"> {sublabel}</span>
-              </div>
+            <div className="font-display font-black tabular-nums leading-none text-white mb-1.5"
+              style={{ fontSize: 'clamp(2.5rem,4vw,3.5rem)' }}
+            >
+              {isLoading ? (
+                <span className="text-white/20">—</span>
+              ) : (
+                <><AnimatedNumber value={value} />+</>
+              )}
             </div>
+
+            <div className={cn('text-xs font-bold uppercase tracking-wider', color)}>
+              {label}
+            </div>
+            <div className="text-xs text-white/30 mt-0.5">{sublabel}</div>
           </motion.div>
         );
       })}
