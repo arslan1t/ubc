@@ -1,15 +1,10 @@
-import type { Metadata } from 'next';
-import { OpenRunDetailContent } from './open-run-detail-content';
+import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = {
-  title: 'Open Run',
-};
-
-export default async function OpenRunDetailPage({
+export default async function OpenRunDetailRedirect({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <OpenRunDetailContent id={id} />;
+  redirect(`/pickup-games/${id}`);
 }

@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsUUID,
   IsDateString,
+  IsEnum,
   Matches,
   Min,
   Max,
@@ -12,6 +13,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { SkillLevel } from '@prisma/client';
 
 export class CreateOpenRunDto {
   @ApiProperty()
@@ -61,6 +63,11 @@ export class CreateOpenRunDto {
   @IsBoolean()
   @Type(() => Boolean)
   isPublic: boolean;
+
+  @ApiPropertyOptional({ enum: SkillLevel, default: SkillLevel.ANY })
+  @IsEnum(SkillLevel)
+  @IsOptional()
+  skillLevel?: SkillLevel;
 }
 
 export class OpenRunFiltersDto {
@@ -79,6 +86,16 @@ export class OpenRunFiltersDto {
   @IsOptional()
   @Type(() => Boolean)
   upcoming?: boolean;
+
+  @ApiPropertyOptional({ enum: SkillLevel })
+  @IsEnum(SkillLevel)
+  @IsOptional()
+  skillLevel?: SkillLevel;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  isFree?: string;
 
   @ApiPropertyOptional()
   @IsNumber()

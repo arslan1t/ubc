@@ -1,16 +1,6 @@
-import type { Metadata } from 'next';
-import { Suspense } from 'react';
-import { OpenRunsPageContent } from './open-runs-content';
+import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = {
-  title: 'Open Runs',
-  description: 'Баскетбольные Open Runs в Узбекистане — находи игры и записывайся',
-};
-
-export default function OpenRunsPage() {
-  return (
-    <Suspense>
-      <OpenRunsPageContent />
-    </Suspense>
-  );
+// Canonical route is /pickup-games — keep old links working.
+export default function OpenRunsRedirect() {
+  redirect('/pickup-games');
 }
