@@ -4,35 +4,37 @@
 
 @layer base {
   :root {
-    --background: 0 0% 4%;
-    --foreground: 0 0% 95%;
+    /* Midnight court — deeper than pure black, has warmth */
+    --background: 220 15% 3%;
+    --foreground: 0 0% 96%;
 
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 95%;
+    --card: 220 12% 7%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 0 0% 8%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 220 12% 7%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 42 72% 47%;
-    --primary-foreground: 0 0% 4%;
+    /* Gold — vibrant, not muted */
+    --primary: 43 85% 53%;
+    --primary-foreground: 220 15% 3%;
 
-    --secondary: 0 0% 12%;
+    --secondary: 220 10% 12%;
     --secondary-foreground: 0 0% 80%;
 
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 50%;
+    --muted: 220 10% 12%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 0 0% 12%;
-    --accent-foreground: 0 0% 95%;
+    --accent: 220 10% 12%;
+    --accent-foreground: 0 0% 96%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 75% 52%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 15%;
-    --input: 0 0% 12%;
-    --ring: 42 72% 47%;
+    --border: 220 10% 14%;
+    --input: 220 10% 10%;
+    --ring: 43 85% 53%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 }
 
@@ -43,46 +45,173 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    /* Subtle grain texture */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-display;
   }
+
+  ::selection {
+    background: hsl(43 85% 53% / 0.3);
+    color: hsl(0 0% 96%);
+  }
 }
 
 @layer utilities {
+  /* ─── Typography utilities ─── */
   .gold-text {
     @apply text-primary;
   }
 
+  .gradient-gold {
+    background: linear-gradient(135deg, hsl(43 85% 65%), hsl(43 85% 45%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(0 0% 100%), hsl(0 0% 65%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ─── Layout ─── */
   .container-page {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
   .section-padding {
-    @apply py-12 md:py-16 lg:py-20;
+    @apply py-14 md:py-20 lg:py-24;
   }
 
+  /* ─── Card effects ─── */
   .card-hover {
-    @apply transition-all duration-200 hover:border-primary/50 hover:-translate-y-0.5;
+    @apply transition-all duration-300 hover:border-primary/40 hover:-translate-y-1;
+  }
+
+  .card-glow {
+    @apply hover:shadow-[0_0_30px_rgba(201,162,39,0.12)];
+  }
+
+  .glass {
+    @apply bg-white/[0.03] backdrop-blur-xl border border-white/[0.06];
+  }
+
+  /* ─── Gradient backgrounds ─── */
+  .bg-court-gradient {
+    background: radial-gradient(
+      ellipse at 50% 0%,
+      hsl(43 85% 53% / 0.08) 0%,
+      transparent 70%
+    );
+  }
+
+  .bg-hero-gradient {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      hsl(220 15% 3% / 0.4) 50%,
+      hsl(220 15% 3%) 100%
+    );
+  }
+
+  /* ─── Stripe / court line decorations ─── */
+  .court-lines {
+    background-image:
+      repeating-linear-gradient(
+        90deg,
+        hsl(43 85% 53% / 0.04) 0px,
+        hsl(43 85% 53% / 0.04) 1px,
+        transparent 1px,
+        transparent 80px
+      );
+  }
+
+  /* ─── Glow effects ─── */
+  .glow-gold {
+    box-shadow: 0 0 40px hsl(43 85% 53% / 0.25);
+  }
+
+  .glow-gold-sm {
+    box-shadow: 0 0 16px hsl(43 85% 53% / 0.2);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 40px hsl(43 85% 53% / 0.6);
+  }
+
+  /* ─── Live / pulse ─── */
+  .live-dot {
+    @apply relative;
+  }
+  .live-dot::before {
+    content: '';
+    @apply absolute inset-0 rounded-full bg-red-500 animate-ping opacity-75;
+  }
+
+  /* ─── Section dividers ─── */
+  .divider-court {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(43 85% 53% / 0.3),
+      transparent
+    );
+  }
+
+  /* ─── Number display ─── */
+  .stat-number {
+    @apply font-display font-black tabular-nums;
+    font-feature-settings: 'tnum';
+    font-variant-numeric: tabular-nums;
   }
 }
 
-/* Scrollbar styling */
+/* ─── Scrollbar ─── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
-
 ::-webkit-scrollbar-track {
   background: hsl(var(--background));
 }
-
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--border));
   border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground));
+  background: hsl(var(--primary) / 0.5);
+}
+
+/* ─── Custom keyframes ─── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px hsl(43 85% 53% / 0.2); }
+  50% { box-shadow: 0 0 40px hsl(43 85% 53% / 0.4); }
+}
+
+/* Loading shimmer for skeletons */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--secondary)) 0%,
+    hsl(var(--border)) 50%,
+    hsl(var(--secondary)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }
