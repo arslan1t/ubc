@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, MapPin, Zap, Activity, ChevronRight, Video, CalendarDays, Newspaper, Users, Camera } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowRight, MapPin, Zap, Activity, ChevronRight } from 'lucide-react';
 import { CommunityStats } from '@/components/home/community-stats';
 import { ActivityFeed } from '@/components/home/activity-feed';
 import { CommunitySpotlight } from '@/components/home/community-spotlight';
@@ -12,68 +11,62 @@ import { LatestMedia } from '@/components/home/latest-media';
 const GOLD = 'hsl(43 75% 47%)';
 const GOLD_LIGHT = 'hsl(43 90% 64%)';
 
-const FEATURE_CARDS = [
+const EXPLORE_CARDS = [
   {
-    href: '/media',
-    label: 'MEDIA',
-    sub: 'Видео и фото',
-    desc: 'Хайлайты, репортажи и фото из мира узбекского баскетбола',
-    icon: Camera,
-    iconColor: 'text-violet-400',
-    glowHex: '#a78bfa',
-    glowRgb: '167,139,250',
+    href: '/courts',
+    label: 'COURTS',
+    count: '100+ courts',
+    desc: 'Find the best basketball courts across Uzbekistan',
+    bgPos: 'center 20%',
+    tint: 'rgba(34,197,94,0.12)',
+    accent: '#22c55e',
+  },
+  {
+    href: '/pickup-games',
+    label: 'GAMES',
+    count: 'Live games',
+    desc: 'Join pickup games near you today',
+    bgPos: 'center 55%',
+    tint: 'rgba(56,189,248,0.10)',
+    accent: '#38bdf8',
   },
   {
     href: '/events',
     label: 'EVENTS',
-    sub: 'Ивенты',
-    desc: 'Турниры, тренировки и события по всему Узбекистану',
-    icon: CalendarDays,
-    iconColor: 'text-sky-400',
-    glowHex: '#38bdf8',
-    glowRgb: '56,189,248',
+    count: 'Upcoming events',
+    desc: 'Tournaments and events across the country',
+    bgPos: '25% center',
+    tint: 'rgba(167,139,250,0.10)',
+    accent: '#a78bfa',
   },
   {
-    href: '/courts',
-    label: 'COURTS',
-    sub: 'Корты',
-    desc: 'Лучшие баскетбольные площадки — найди ближайший корт',
-    icon: MapPin,
-    iconColor: 'text-emerald-400',
-    glowHex: '#34d399',
-    glowRgb: '52,211,153',
-  },
-  {
-    href: '/pickup-games',
-    label: 'PICKUP GAMES',
-    sub: 'Открытые игры',
-    desc: 'Записывайся на игру или организуй свой Pickup Run',
-    icon: Zap,
-    iconColor: 'text-primary',
-    glowHex: '#d4a11e',
-    glowRgb: '212,161,30',
-  },
-  {
-    href: '/news',
-    label: 'NEWS',
-    sub: 'Новости',
-    desc: 'Последние события и аналитика узбекского баскетбола',
-    icon: Newspaper,
-    iconColor: 'text-rose-400',
-    glowHex: '#fb7185',
-    glowRgb: '251,113,133',
+    href: '/media',
+    label: 'MEDIA',
+    count: 'Video & photos',
+    desc: 'Highlights, photos and videos from the courts',
+    bgPos: '75% center',
+    tint: 'rgba(251,113,133,0.08)',
+    accent: '#fb7185',
   },
   {
     href: '/players',
     label: 'PLAYERS',
-    sub: 'Игроки',
-    desc: 'Рейтинг и профили лучших игроков баскетбольного сообщества',
-    icon: Users,
-    iconColor: 'text-slate-300',
-    glowHex: '#cbd5e1',
-    glowRgb: '203,213,225',
+    count: '1200+ players',
+    desc: 'Connect with the basketball community',
+    bgPos: 'center 70%',
+    tint: 'rgba(212,161,30,0.14)',
+    accent: '#d4a11e',
   },
-];
+  {
+    href: '/news',
+    label: 'NEWS',
+    count: 'Latest coverage',
+    desc: 'Stories and analysis from the courts',
+    bgPos: 'center 85%',
+    tint: 'rgba(203,213,225,0.07)',
+    accent: '#cbd5e1',
+  },
+] as const;
 
 export default function HomePage() {
   return (
@@ -119,17 +112,10 @@ export default function HomePage() {
 
                 {/* Main heading */}
                 <h1
-                  className="font-display font-black leading-[0.88] tracking-tighter mb-[2.5%]"
+                  className="font-display font-black leading-[0.85] tracking-tighter mb-[2.5%]"
                 >
-                  <span
-                    className="block text-[clamp(1.6rem,4.2vw,4rem)] text-white"
-                  >
-                    ONE CULTURE.
-                  </span>
-                  <span
-                    className="block text-[clamp(1.6rem,4.2vw,4rem)] text-white"
-                  >
-                    ONE GAME.
+                  <span className="block text-[clamp(1.6rem,4.2vw,4rem)] text-white">
+                    UZBEK
                   </span>
                   <span
                     className="block text-[clamp(1.6rem,4.2vw,4rem)]"
@@ -140,15 +126,18 @@ export default function HomePage() {
                       backgroundClip: 'text',
                     }}
                   >
-                    ONE COMMUNITY.
+                    BASKETBALL
+                  </span>
+                  <span className="block text-[clamp(1.6rem,4.2vw,4rem)] text-white">
+                    CULTURE
                   </span>
                 </h1>
 
                 {/* Subtitle */}
                 <p className="text-[clamp(0.7rem,1.1vw,1rem)] text-white/50 leading-relaxed mb-[3%]">
-                  Единая экосистема баскетбола Узбекистана.
+                  The home of basketball culture in Uzbekistan.
                   <br className="hidden sm:block" />
-                  Находи корты, организуй игры, строй сообщество.
+                  Find games, discover courts and connect with players.
                 </p>
 
                 {/* CTAs */}
@@ -161,7 +150,7 @@ export default function HomePage() {
                     }}
                   >
                     <Zap className="w-[1em] h-[1em]" />
-                    Find a Game
+                    Find Game
                   </Link>
                   <Link
                     href="/courts"
@@ -176,7 +165,7 @@ export default function HomePage() {
                     }}
                   >
                     <MapPin className="w-[1em] h-[1em]" />
-                    Explore Courts
+                    Find Court
                   </Link>
                 </div>
               </div>
@@ -214,98 +203,88 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* BOTTOM — Liquid Glass stats bar */}
-          <div className="shrink-0">
-            <CommunityStats inline />
-          </div>
         </div>
       </section>
 
-      {/* ─── Feature Cards Grid ─── */}
+      {/* ─── Community Stats ─── */}
+      <section className="py-12 md:py-16">
+        <div className="container-page">
+          <CommunityStats />
+        </div>
+      </section>
+
+      {/* ─── Divider ─── */}
+      <div className="container-page">
+        <div className="divider-court" />
+      </div>
+
+      {/* ─── Explore UBC ─── */}
       <section className="section-padding">
         <div className="container-page">
           <div className="mb-10">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary mb-3">Платформа</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary mb-3">Explore</p>
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
               <h2 className="font-display font-black text-4xl md:text-5xl leading-[0.92] tracking-tight">
-                Всё в одном <span className="gradient-gold">месте</span>
+                Explore <span className="gradient-gold">UBC</span>
               </h2>
-              <p className="text-sm text-white/30 sm:text-right leading-relaxed">
-                Всё баскетбольное<br className="hidden sm:block" /> сообщество Узбекистана
+              <p className="text-sm text-white/30 sm:text-right leading-relaxed max-w-[220px]">
+                The central basketball<br className="hidden sm:block" /> platform of Uzbekistan
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-            {FEATURE_CARDS.map((card) => {
-              const Icon = card.icon;
-              return (
-                <Link
-                  key={card.href}
-                  href={card.href}
-                  className="glass-card group relative overflow-hidden rounded-3xl"
-                >
-                  {/* Colored ambient glow — blooms on hover */}
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+            {EXPLORE_CARDS.map((card) => (
+              <Link
+                key={card.href}
+                href={card.href}
+                className="group relative overflow-hidden rounded-2xl"
+                style={{ aspectRatio: '3/4' }}
+              >
+                {/* Court photo background */}
+                <div
+                  className="absolute inset-0 transition-transform duration-700 group-hover:scale-105"
+                  style={{
+                    backgroundImage: "url('/main.png')",
+                    backgroundSize: 'cover',
+                    backgroundPosition: card.bgPos,
+                  }}
+                />
+                {/* Color tint — differentiates each card */}
+                <div className="absolute inset-0" style={{ backgroundColor: card.tint }} />
+                {/* Dark overlay */}
+                <div className="absolute inset-0 bg-black/55" />
+                {/* Bottom gradient — text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                {/* Gold border on hover */}
+                <div
+                  className="absolute inset-0 rounded-2xl transition-all duration-300 group-hover:shadow-[inset_0_0_0_1px_rgba(212,161,30,0.45)]"
+                  style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.07)' }}
+                />
+
+                {/* Content */}
+                <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
+                  <p
+                    className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2 opacity-70 group-hover:opacity-100 transition-opacity"
+                    style={{ color: card.accent }}
+                  >
+                    {card.count}
+                  </p>
+                  <h3 className="font-display font-black text-xl md:text-2xl text-white leading-none mb-2">
+                    {card.label}
+                  </h3>
+                  <p className="text-xs text-white/40 leading-relaxed hidden sm:block">
+                    {card.desc}
+                  </p>
                   <div
-                    className="absolute -top-14 -left-14 w-44 h-44 rounded-full blur-3xl opacity-0 group-hover:opacity-25 transition-opacity duration-500 pointer-events-none"
-                    style={{ backgroundColor: card.glowHex }}
-                  />
-
-                  {/* Top specular edge — sharp light line at the top of the panel */}
-                  <div
-                    className="absolute top-0 left-8 right-8 h-px pointer-events-none"
-                    style={{
-                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)',
-                    }}
-                  />
-
-                  {/* Diagonal refraction — curved glass illusion */}
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background: 'linear-gradient(145deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(255,255,255,0.02) 100%)',
-                    }}
-                  />
-
-                  <div className="relative p-8">
-                    {/* Icon — 64px glassmorphic container with colored ambient glow */}
-                    <div
-                      className="relative w-16 h-16 rounded-2xl mb-7 flex items-center justify-center overflow-hidden"
-                      style={{
-                        background: `linear-gradient(135deg, rgba(${card.glowRgb},0.18) 0%, rgba(${card.glowRgb},0.06) 100%)`,
-                        border: '1px solid rgba(255,255,255,0.13)',
-                        boxShadow: `0 0 24px rgba(${card.glowRgb},0.22), inset 0 1px 0 rgba(255,255,255,0.22)`,
-                        backdropFilter: 'blur(8px)',
-                        WebkitBackdropFilter: 'blur(8px)',
-                      }}
-                    >
-                      {/* Inner glow pulse on hover */}
-                      <div
-                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                        style={{
-                          background: `radial-gradient(circle at 50% 50%, rgba(${card.glowRgb},0.35), transparent 70%)`,
-                        }}
-                      />
-                      <Icon className={`w-7 h-7 ${card.iconColor} relative z-10`} />
-                    </div>
-
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-2">
-                      {card.sub}
-                    </p>
-                    <h3 className="font-display font-black text-xl text-white leading-tight mb-3">
-                      {card.label}
-                    </h3>
-                    <p className="text-sm text-white/40 leading-relaxed">
-                      {card.desc}
-                    </p>
-
-                    <div className={`mt-7 flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${card.iconColor} opacity-40 group-hover:opacity-100 group-hover:gap-3.5 transition-all duration-300`}>
-                      Explore <ArrowRight className="w-3.5 h-3.5" />
-                    </div>
+                    className="mt-4 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:gap-3"
+                    style={{ color: card.accent }}
+                  >
+                    Explore <ArrowRight className="w-3 h-3" />
                   </div>
-                </Link>
-              );
-            })}
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>

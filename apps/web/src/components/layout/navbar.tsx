@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Menu, X, User, LogOut, Search, Bell, ChevronDown, Zap, Shield } from 'lucide-react';
+import { Menu, X, User, LogOut, Search, ChevronDown, Zap, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuth, useLogout, useMe } from '@/hooks/use-auth';
@@ -12,16 +12,21 @@ import { getInitials } from '@/lib/utils';
 
 const NAV_LINKS = [
   { href: '/courts', label: 'Courts' },
-  { href: '/pickup-games', label: 'Pickup Games', hot: true },
+  { href: '/pickup-games', label: 'Games', hot: true },
   { href: '/events', label: 'Events' },
   { href: '/media', label: 'Media' },
+];
+
+const MORE_LINKS = [
   { href: '/players', label: 'Players' },
+  { href: '/ranking', label: 'Rankings' },
   { href: '/news', label: 'News' },
 ];
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const { isAuthenticated } = useAuth();
@@ -29,6 +34,7 @@ export function Navbar() {
   const logout = useLogout();
 
   const isAdmin = user && ['ADMIN', 'SUPER_ADMIN', 'MODERATOR'].includes(user.role);
+  const moreActive = MORE_LINKS.some(l => pathname === l.href || pathname.startsWith(l.href + '/'));
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -38,28 +44,24 @@ export function Navbar() {
 
   useEffect(() => {
     setOpen(false);
+    setMoreMenuOpen(false);
   }, [pathname]);
 
   return (
     <>
       <header
-        className={cn(
-          'fixed top-0 inset-x-0 z-50 transition-all duration-500',
-          scrolled
-            ? 'shadow-[0_1px_0_hsl(43_75%_47%/0.08)]'
-            : '',
-        )}
+        className="fixed top-0 inset-x-0 z-50 transition-all duration-500"
         style={scrolled ? {
-          background: 'rgba(10, 10, 10, 0.82)',
+          background: 'rgba(10, 10, 10, 0.88)',
           backdropFilter: 'blur(40px) saturate(180%)',
           WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
-          boxShadow: 'inset 0 -1px 0 rgba(255,255,255,0.04)',
+          borderBottom: '1px solid rgba(212,161,30,0.22)',
+          boxShadow: '0 1px 0 rgba(0,0,0,0.5)',
         } : {
-          background: 'rgba(10, 10, 10, 0.22)',
-          backdropFilter: 'blur(20px) saturate(150%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(150%)',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
+          background: 'rgba(10, 10, 10, 0.30)',
+          backdropFilter: 'blur(24px) saturate(150%)',
+          WebkitBackdropFilter: 'blur(24px) saturate(150%)',
+          borderBottom: '1px solid rgba(212,161,30,0.10)',
         }}
       >
         <div className="container-page flex h-16 items-center justify-between gap-4">
@@ -95,9 +97,7 @@ export function Navbar() {
                   href={link.href}
                   className={cn(
                     'relative px-3.5 py-2 text-xs font-semibold uppercase tracking-wider transition-colors rounded-md',
-                    active
-                      ? 'text-primary'
-                      : 'text-white/60 hover:text-white',
+                    active ? 'text-primary' : 'text-white/60 hover:text-white',
                   )}
                 >
                   {link.hot && (
@@ -114,18 +114,59 @@ export function Navbar() {
                 </Link>
               );
             })}
+
+            {/* More dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setMoreMenuOpen(!moreMenuOpen)}
+                className={cn(
+                  'flex items-center gap-1 px-3.5 py-2 text-xs font-semibold uppercase tracking-wider transition-colors rounded-md',
+                  moreActive ? 'text-primary' : 'text-white/60 hover:text-white',
+                )}
+              >
+                More
+                <ChevronDown className={cn('w-3 h-3 transition-transform duration-200', moreMenuOpen && 'rotate-180')} />
+              </button>
+
+              <AnimatePresence>
+                {moreMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setMoreMenuOpen(false)} />
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute left-0 top-full mt-2 w-44 rounded-xl bg-card shadow-xl shadow-black/50 py-1 z-50"
+                      style={{ border: '1px solid rgba(212,161,30,0.18)' }}
+                    >
+                      {MORE_LINKS.map((link) => {
+                        const active = pathname === link.href || pathname.startsWith(link.href + '/');
+                        return (
+                          <Link
+                            key={link.href}
+                            href={link.href}
+                            onClick={() => setMoreMenuOpen(false)}
+                            className={cn(
+                              'flex items-center px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-secondary',
+                              active ? 'text-primary' : 'text-white/70 hover:text-white',
+                            )}
+                          >
+                            {link.label}
+                          </Link>
+                        );
+                      })}
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
           </nav>
 
           {/* Right side */}
           <div className="flex items-center gap-1.5">
-            {/* Search icon */}
             <button className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors">
               <Search className="w-4 h-4" />
-            </button>
-
-            {/* Bell icon */}
-            <button className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors">
-              <Bell className="w-4 h-4" />
             </button>
 
             {isAdmin && (
@@ -138,7 +179,6 @@ export function Navbar() {
               </Link>
             )}
 
-            {/* Separator */}
             <div className="hidden lg:block w-px h-5 bg-white/15 mx-1" />
 
             {isAuthenticated ? (
@@ -177,7 +217,7 @@ export function Navbar() {
                           className="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-secondary transition-colors"
                         >
                           <User className="w-4 h-4 text-muted-foreground" />
-                          Мой профиль
+                          My Profile
                         </Link>
                         <Link
                           href="/pickup-games/create"
@@ -185,7 +225,7 @@ export function Navbar() {
                           className="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-secondary transition-colors"
                         >
                           <Zap className="w-4 h-4 text-primary" />
-                          Создать игру
+                          Create Game
                         </Link>
                         <div className="my-1 border-t border-border/60" />
                         <button
@@ -193,7 +233,7 @@ export function Navbar() {
                           className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/5 transition-colors"
                         >
                           <LogOut className="w-4 h-4" />
-                          Выйти
+                          Sign Out
                         </button>
                       </motion.div>
                     </>
@@ -220,7 +260,7 @@ export function Navbar() {
             <button
               onClick={() => setOpen(!open)}
               className="lg:hidden p-2 rounded-xl hover:bg-white/10 transition-colors"
-              aria-label="Меню"
+              aria-label="Menu"
             >
               <AnimatePresence mode="wait" initial={false}>
                 {open ? (
@@ -266,7 +306,8 @@ export function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed right-0 top-0 bottom-0 z-50 w-72 bg-card border-l border-border shadow-2xl lg:hidden flex flex-col"
+              className="fixed right-0 top-0 bottom-0 z-50 w-72 bg-card shadow-2xl lg:hidden flex flex-col"
+              style={{ borderLeft: '1px solid rgba(212,161,30,0.15)' }}
             >
               <div className="flex items-center justify-between p-4 border-b border-border/60">
                 <div className="flex items-center gap-2.5">
@@ -282,7 +323,7 @@ export function Navbar() {
               </div>
 
               <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-                {NAV_LINKS.map((link, i) => {
+                {[...NAV_LINKS, ...MORE_LINKS].map((link, i) => {
                   const active = pathname === link.href || pathname.startsWith(link.href + '/');
                   return (
                     <motion.div
@@ -301,7 +342,7 @@ export function Navbar() {
                         )}
                       >
                         {link.label}
-                        {link.hot && (
+                        {'hot' in link && link.hot && (
                           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                         )}
                       </Link>
@@ -332,7 +373,7 @@ export function Navbar() {
                       </div>
                       <div>
                         <div className="text-sm font-semibold">{user?.firstName} {user?.lastName}</div>
-                        <div className="text-xs text-muted-foreground">Мой профиль</div>
+                        <div className="text-xs text-muted-foreground">My Profile</div>
                       </div>
                     </Link>
                     <button
@@ -340,7 +381,7 @@ export function Navbar() {
                       className="flex w-full items-center gap-2 rounded-xl px-4 py-2.5 text-sm text-destructive hover:bg-destructive/5 transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
-                      Выйти
+                      Sign Out
                     </button>
                   </div>
                 ) : (
@@ -353,7 +394,7 @@ export function Navbar() {
                     </Link>
                     <Link
                       href="/auth/register"
-                      className="block w-full text-center rounded-xl px-4 py-2.5 text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors"
+                      className="block w-full text-center rounded-xl px-4 py-2.5 text-sm font-bold bg-primary text-[#0a0a0a] hover:bg-primary/90 transition-colors"
                     >
                       Sign Up
                     </Link>
@@ -365,7 +406,6 @@ export function Navbar() {
         )}
       </AnimatePresence>
 
-      {/* Spacer so content below fixed header isn't hidden */}
       <div className="h-16" />
     </>
   );
