@@ -99,6 +99,15 @@ enum EventStatus {
   COMPLETED
 }
 
+enum NotificationType {
+  SUBMISSION_APPROVED
+  SUBMISSION_REJECTED
+  EVENT_REGISTRATION
+  EVENT_UPDATE
+  PICKUP_GAME_UPDATE
+  ANNOUNCEMENT
+}
+
 // ─────────────────────────────────────────────
 // USERS
 // ─────────────────────────────────────────────
@@ -134,6 +143,8 @@ model User {
   submissions          Submission[] @relation("SubmittedBy")
   reviewedSubmissions  Submission[] @relation("ReviewedBy")
   eventRegistrations   EventRegistration[]
+  notifications        Notification[]
+  auditLogs            AuditLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -449,4 +460,46 @@ model EventRegistration {
   @@unique([eventId, userId])
   @@index([eventId])
   @@map("event_registrations")
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String?
+  link      String?
+  isRead    Boolean          @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ─────────────────────────────────────────────
+// AUDIT LOGS — automatic record of every staff mutation
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actorRole  String?
+  method     String
+  path       String
+  statusCode Int
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([actorId])
+  @@index([createdAt])
+  @@map("audit_logs")
 }

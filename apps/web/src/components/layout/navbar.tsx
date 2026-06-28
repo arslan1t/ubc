@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuth, useLogout, useMe } from '@/hooks/use-auth';
 import { getInitials } from '@/lib/utils';
+import { NotificationBell } from './notification-bell';
 
 const NAV_LINKS = [
   { href: '/courts', label: 'Courts' },
@@ -168,6 +169,8 @@ export function Navbar() {
             <button className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors">
               <Search className="w-4 h-4" />
             </button>
+
+            {isAuthenticated && <NotificationBell />}
 
             {isAdmin && (
               <Link

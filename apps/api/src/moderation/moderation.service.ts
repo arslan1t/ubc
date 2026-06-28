@@ -13,6 +13,7 @@ import {
 } from '@prisma/client';
 import slugify from 'slug';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateSubmissionDto } from './dto/submission.dto';
 
 const SUBMITTER_SELECT = {
@@ -22,9 +23,21 @@ const SUBMITTER_SELECT = {
   reviewedBy: { select: { id: true, firstName: true, lastName: true } },
 };
 
+const TYPE_LABEL: Record<SubmissionType, string> = {
+  COURT: 'корт',
+  NEWS: 'новость',
+  EVENT: 'событие',
+  PHOTO: 'фото',
+  REPORT: 'жалоба',
+  RESULT: 'результат',
+};
+
 @Injectable()
 export class ModerationService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   // ─── User-facing ───
 
@@ -96,7 +109,7 @@ export class ModerationService {
   async approve(reviewerId: string, id: string) {
     const sub = await this.getPending(id);
     const resultId = await this.materialize(sub);
-    return this.prisma.submission.update({
+    const updated = await this.prisma.submission.update({
       where: { id },
       data: {
         status: SubmissionStatus.APPROVED,
@@ -106,6 +119,14 @@ export class ModerationService {
       },
       include: SUBMITTER_SELECT,
     });
+
+    await this.notifications.create(
+      sub.submittedById,
+      'SUBMISSION_APPROVED',
+      `Заявка одобрена: ${TYPE_LABEL[sub.type]}`,
+    );
+
+    return updated;
   }
 
   reject(reviewerId: string, id: string, note?: string) {
@@ -122,8 +143,8 @@ export class ModerationService {
     status: SubmissionStatus,
     note?: string,
   ) {
-    await this.getPending(id);
-    return this.prisma.submission.update({
+    const sub = await this.getPending(id);
+    const updated = await this.prisma.submission.update({
       where: { id },
       data: {
         status,
@@ -133,6 +154,17 @@ export class ModerationService {
       },
       include: SUBMITTER_SELECT,
     });
+
+    if (status === SubmissionStatus.REJECTED) {
+      await this.notifications.create(
+        sub.submittedById,
+        'SUBMISSION_REJECTED',
+        `Заявка отклонена: ${TYPE_LABEL[sub.type]}`,
+        note,
+      );
+    }
+
+    return updated;
   }
 
   private async getPending(id: string): Promise<Submission> {
