@@ -11,11 +11,12 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { ParticipantStatus } from '@prisma/client';
+import { ParticipantStatus, UserRole } from '@prisma/client';
 import { OpenRunsService } from './open-runs.service';
 import { CreateOpenRunDto, OpenRunFiltersDto } from './dto/open-run.dto';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @ApiTags('open-runs')
 @Controller('open-runs')
@@ -27,6 +28,22 @@ export class OpenRunsController {
   @ApiOperation({ summary: 'Список Open Runs' })
   findAll(@Query() filters: OpenRunFiltersDto) {
     return this.openRunsService.findAll(filters);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Get('admin/all')
+  @ApiOperation({ summary: 'Все игры, включая закрытые/отменённые (admin/moderator)' })
+  findAllAdmin(@Query() filters: OpenRunFiltersDto) {
+    return this.openRunsService.adminFindAll(filters);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Patch(':id/admin-cancel')
+  @ApiOperation({ summary: 'Отменить игру (admin/moderator)' })
+  adminCancel(@Param('id') id: string) {
+    return this.openRunsService.adminCancel(id);
   }
 
   @Public()

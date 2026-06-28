@@ -29,6 +29,14 @@ export class MediaController {
     return this.mediaService.findAll(filters, true);
   }
 
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Get('admin/all')
+  @ApiOperation({ summary: 'Все медиа, включая черновики (admin/moderator)' })
+  findAllAdmin(@Query() filters: MediaFiltersDto) {
+    return this.mediaService.findAll(filters, false);
+  }
+
   @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Медиа по ID' })

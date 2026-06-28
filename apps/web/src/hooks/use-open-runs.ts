@@ -72,3 +72,20 @@ export function useCancelOpenRun() {
     },
   });
 }
+
+// ─── Admin ───
+
+export function useAdminOpenRuns(filters: Record<string, any> = {}) {
+  return useQuery({
+    queryKey: [...openRunKeys.all, 'admin', filters],
+    queryFn: async () => (await api.get('/open-runs/admin/all', { params: filters })).data,
+  });
+}
+
+export function useAdminCancelOpenRun() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.patch(`/open-runs/${id}/admin-cancel`).then((r) => r.data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: openRunKeys.all }),
+  });
+}

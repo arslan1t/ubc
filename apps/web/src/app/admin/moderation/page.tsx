@@ -19,6 +19,16 @@ const STATUS_TABS = [
   { key: 'REJECTED', label: 'Отклонено' },
 ];
 
+const TYPE_TABS: { key: SubmissionType | ''; label: string }[] = [
+  { key: '', label: 'Все типы' },
+  { key: 'COURT', label: 'Корты' },
+  { key: 'NEWS', label: 'Новости' },
+  { key: 'PHOTO', label: 'Фото' },
+  { key: 'REPORT', label: 'Жалобы' },
+  { key: 'EVENT', label: 'События' },
+  { key: 'RESULT', label: 'Результаты' },
+];
+
 const TYPE_META: Record<SubmissionType, { label: string; icon: typeof MapPin; color: string }> = {
   COURT: { label: 'Корт', icon: MapPin, color: 'text-emerald-400 bg-emerald-400/10' },
   NEWS: { label: 'Новость', icon: Newspaper, color: 'text-sky-400 bg-sky-400/10' },
@@ -44,7 +54,8 @@ function payloadSummary(s: Submission): { title: string; lines: string[] } {
 
 export default function ModerationPage() {
   const [status, setStatus] = useState('PENDING');
-  const { data, isLoading } = useModerationQueue({ status });
+  const [type, setType] = useState<SubmissionType | ''>('');
+  const { data, isLoading } = useModerationQueue(type ? { status, type } : { status });
   const approve = useApproveSubmission();
   const reject = useRejectSubmission();
   const requestChanges = useRequestChanges();
@@ -68,7 +79,7 @@ export default function ModerationPage() {
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-3">
         {STATUS_TABS.map((t) => (
           <button
             key={t.key}
@@ -78,6 +89,23 @@ export default function ModerationPage() {
               status === t.key
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-secondary/50 text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-6">
+        {TYPE_TABS.map((t) => (
+          <button
+            key={t.key || 'all'}
+            onClick={() => setType(t.key)}
+            className={cn(
+              'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors',
+              type === t.key
+                ? 'bg-primary/15 text-primary'
+                : 'text-muted-foreground/70 hover:text-foreground',
             )}
           >
             {t.label}
