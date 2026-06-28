@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, OnModuleInit, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEventDto, UpdateEventDto } from './dto/event.dto';
+import { DEFAULT_TOURNAMENT } from './default-event.data';
 import slugify from 'slug';
 
 const EVENT_LIST_SELECT = {
@@ -16,8 +17,24 @@ const EVENT_LIST_SELECT = {
 };
 
 @Injectable()
-export class EventsService {
+export class EventsService implements OnModuleInit {
+  private readonly logger = new Logger(EventsService.name);
+
   constructor(private prisma: PrismaService) {}
+
+  // Production-safe default-data bootstrap: runs on every API start, inserts
+  // the default tournament only if it doesn't already exist (upsert on slug).
+  async onModuleInit() {
+    try {
+      await this.prisma.event.upsert({
+        where: { slug: DEFAULT_TOURNAMENT.slug },
+        update: {},
+        create: DEFAULT_TOURNAMENT,
+      });
+    } catch (error) {
+      this.logger.error('Failed to ensure default tournament exists', error as Error);
+    }
+  }
 
   async findAll() {
     const events = await this.prisma.event.findMany({
