@@ -4,6 +4,7 @@ import './globals.css';
 import { Providers } from '@/components/layout/providers';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
+import { BottomNav } from '@/components/layout/bottom-nav';
 import { Toaster } from 'sonner';
 
 const inter = Inter({
@@ -44,9 +45,10 @@ export default function RootLayout({
         <Providers>
           <div className="flex min-h-screen flex-col">
             <Navbar />
-            <main className="flex-1 min-w-0">{children}</main>
+            <main className="flex-1 min-w-0 pb-20 lg:pb-0">{children}</main>
             <Footer />
           </div>
+          <BottomNav />
           <Toaster theme="dark" position="top-right" richColors />
         </Providers>
       </body>

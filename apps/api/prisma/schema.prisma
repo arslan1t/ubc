@@ -92,6 +92,13 @@ enum MediaType {
   PODCAST
 }
 
+enum EventStatus {
+  UPCOMING
+  REGISTRATION_OPEN
+  LIVE
+  COMPLETED
+}
+
 // ─────────────────────────────────────────────
 // USERS
 // ─────────────────────────────────────────────
@@ -126,6 +133,7 @@ model User {
   media            Media[]
   submissions          Submission[] @relation("SubmittedBy")
   reviewedSubmissions  Submission[] @relation("ReviewedBy")
+  eventRegistrations   EventRegistration[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -376,4 +384,69 @@ model Media {
   @@index([isPublished])
   @@index([publishedAt])
   @@map("media")
+}
+
+// ─────────────────────────────────────────────
+// EVENTS / TOURNAMENTS
+// ─────────────────────────────────────────────
+
+model Event {
+  id              String      @id @default(uuid())
+  slug            String      @unique
+  title           String
+  status          EventStatus @default(UPCOMING)
+  startDate       DateTime
+  location        String
+  address         String?
+  latitude        Float?
+  longitude       Float?
+  coverUrl        String?
+  description     String?
+  rules           String?
+  prizePool       String?
+  schedule        Json?
+  sponsors        Json?
+  faq             Json?
+  maxParticipants Int?
+  resultsSummary  String?
+
+  gallery       EventImage[]
+  registrations EventRegistration[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([slug])
+  @@map("events")
+}
+
+model EventImage {
+  id           String  @id @default(uuid())
+  eventId      String
+  event        Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  url          String
+  thumbnailUrl String
+  mediumUrl    String
+  storageKey   String
+  order        Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([eventId])
+  @@map("event_images")
+}
+
+model EventRegistration {
+  id        String   @id @default(uuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@map("event_registrations")
 }

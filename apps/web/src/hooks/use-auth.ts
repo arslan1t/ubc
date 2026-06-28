@@ -69,6 +69,36 @@ export function useRegister() {
   });
 }
 
+export interface TelegramAuthPayload {
+  id: number;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+  auth_date: number;
+  hash: string;
+}
+
+export function useTelegramLogin() {
+  const { setTokens } = useAuthStore();
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (dto: TelegramAuthPayload) =>
+      api.post('/auth/telegram', dto).then((r) => r.data),
+    onSuccess: (data) => {
+      setTokens(data.accessToken, data.refreshToken);
+      queryClient.invalidateQueries({ queryKey: ['me'] });
+      toast.success('Добро пожаловать!');
+      router.push('/');
+    },
+    onError: () => {
+      toast.error('Не удалось войти через Telegram');
+    },
+  });
+}
+
 export function useLogout() {
   const { logout } = useAuthStore();
   const queryClient = useQueryClient();

@@ -45,13 +45,13 @@ export function OpenRunCard({ run, compact, className }: OpenRunCardProps) {
   if (compact) {
     return (
       <Link href={`/pickup-games/${run.id}`} className={cn('group block', className)}>
-        <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-card/60 p-3 hover:border-primary/40 hover:bg-card transition-all duration-200">
+        <div className="flex items-center gap-3 rounded-xl p-3 transition-all duration-200 glass-item">
           {/* Date badge */}
           <div className="shrink-0 w-10 text-center">
             <div className="font-display font-black text-xl leading-none text-primary">{day}</div>
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{month}</div>
           </div>
-          <div className="w-px h-8 bg-border/60 shrink-0" />
+          <div className="w-px h-8 bg-white/[0.09] shrink-0" />
           <div className="flex-1 min-w-0">
             <div className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
               {run.title ?? run.court.name}
@@ -73,10 +73,8 @@ export function OpenRunCard({ run, compact, className }: OpenRunCardProps) {
   return (
     <Link href={`/pickup-games/${run.id}`} className={cn('group block', className)}>
       <div className={cn(
-        'relative rounded-2xl border overflow-hidden transition-all duration-300',
-        isCancelled
-          ? 'border-border/40 opacity-60'
-          : 'border-border/60 hover:border-primary/40 hover:-translate-y-1 hover:shadow-[0_8px_32px_hsl(43_85%_53%/0.1)]',
+        'relative rounded-2xl overflow-hidden glass-content-card',
+        isCancelled && 'opacity-60',
       )}>
         {/* Top color strip — varies by status */}
         <div className={cn(
@@ -86,7 +84,7 @@ export function OpenRunCard({ run, compact, className }: OpenRunCardProps) {
           'bg-gradient-to-r from-primary/80 via-primary to-primary/60',
         )} />
 
-        <div className="bg-card p-4 md:p-5">
+        <div className="p-4 md:p-5">
           <div className="flex gap-4">
             {/* Date column */}
             <div className="shrink-0 flex flex-col items-center justify-center w-14 rounded-xl bg-primary/10 border border-primary/20 py-2">
@@ -142,7 +140,7 @@ export function OpenRunCard({ run, compact, className }: OpenRunCardProps) {
           </div>
 
           {/* Participation bar */}
-          <div className="mt-4 pt-3 border-t border-border/50">
+          <div className="mt-4 pt-3 border-t border-white/[0.07]">
             <div className="flex items-center justify-between mb-1.5 text-xs">
               <span className="flex items-center gap-1.5 text-muted-foreground">
                 <Users className="w-3.5 h-3.5" />

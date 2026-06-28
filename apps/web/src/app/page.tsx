@@ -1,72 +1,14 @@
 import Link from 'next/link';
-import { ArrowRight, MapPin, Zap, Activity, ChevronRight } from 'lucide-react';
+import { MapPin, Zap, Activity, ChevronRight } from 'lucide-react';
 import { CommunityStats } from '@/components/home/community-stats';
 import { ActivityFeed } from '@/components/home/activity-feed';
-import { CommunitySpotlight } from '@/components/home/community-spotlight';
 import { UpcomingOpenRuns } from '@/components/home/upcoming-open-runs';
 import { PopularCourts } from '@/components/home/popular-courts';
 import { LatestNews } from '@/components/home/latest-news';
-import { LatestMedia } from '@/components/home/latest-media';
+import { TournamentTeaser } from '@/components/home/tournament-teaser';
 
 const GOLD = 'hsl(43 75% 47%)';
 const GOLD_LIGHT = 'hsl(43 90% 64%)';
-
-const EXPLORE_CARDS = [
-  {
-    href: '/courts',
-    label: 'COURTS',
-    count: '100+ courts',
-    desc: 'Find the best basketball courts across Uzbekistan',
-    bgPos: 'center 20%',
-    tint: 'rgba(34,197,94,0.12)',
-    accent: '#22c55e',
-  },
-  {
-    href: '/pickup-games',
-    label: 'GAMES',
-    count: 'Live games',
-    desc: 'Join pickup games near you today',
-    bgPos: 'center 55%',
-    tint: 'rgba(56,189,248,0.10)',
-    accent: '#38bdf8',
-  },
-  {
-    href: '/events',
-    label: 'EVENTS',
-    count: 'Upcoming events',
-    desc: 'Tournaments and events across the country',
-    bgPos: '25% center',
-    tint: 'rgba(167,139,250,0.10)',
-    accent: '#a78bfa',
-  },
-  {
-    href: '/media',
-    label: 'MEDIA',
-    count: 'Video & photos',
-    desc: 'Highlights, photos and videos from the courts',
-    bgPos: '75% center',
-    tint: 'rgba(251,113,133,0.08)',
-    accent: '#fb7185',
-  },
-  {
-    href: '/players',
-    label: 'PLAYERS',
-    count: '1200+ players',
-    desc: 'Connect with the basketball community',
-    bgPos: 'center 70%',
-    tint: 'rgba(212,161,30,0.14)',
-    accent: '#d4a11e',
-  },
-  {
-    href: '/news',
-    label: 'NEWS',
-    count: 'Latest coverage',
-    desc: 'Stories and analysis from the courts',
-    bgPos: 'center 85%',
-    tint: 'rgba(203,213,225,0.07)',
-    accent: '#cbd5e1',
-  },
-] as const;
 
 export default function HomePage() {
   return (
@@ -203,89 +145,17 @@ export default function HomePage() {
             </div>
           </div>
 
+          {/* Bottom — community stats bar */}
+          <div className="shrink-0 pt-4">
+            <CommunityStats inline />
+          </div>
         </div>
       </section>
 
-      {/* ─── Community Stats ─── */}
-      <section className="py-12 md:py-16">
+      {/* ─── Tournament Teaser ─── */}
+      <section className="py-10 md:py-14">
         <div className="container-page">
-          <CommunityStats />
-        </div>
-      </section>
-
-      {/* ─── Divider ─── */}
-      <div className="container-page">
-        <div className="divider-court" />
-      </div>
-
-      {/* ─── Explore UBC ─── */}
-      <section className="section-padding">
-        <div className="container-page">
-          <div className="mb-10">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary mb-3">Explore</p>
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-              <h2 className="font-display font-black text-4xl md:text-5xl leading-[0.92] tracking-tight">
-                Explore <span className="gradient-gold">UBC</span>
-              </h2>
-              <p className="text-sm text-white/30 sm:text-right leading-relaxed max-w-[220px]">
-                The central basketball<br className="hidden sm:block" /> platform of Uzbekistan
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-            {EXPLORE_CARDS.map((card) => (
-              <Link
-                key={card.href}
-                href={card.href}
-                className="group relative overflow-hidden rounded-2xl"
-                style={{ aspectRatio: '3/4' }}
-              >
-                {/* Court photo background */}
-                <div
-                  className="absolute inset-0 transition-transform duration-700 group-hover:scale-105"
-                  style={{
-                    backgroundImage: "url('/main.png')",
-                    backgroundSize: 'cover',
-                    backgroundPosition: card.bgPos,
-                  }}
-                />
-                {/* Color tint — differentiates each card */}
-                <div className="absolute inset-0" style={{ backgroundColor: card.tint }} />
-                {/* Dark overlay */}
-                <div className="absolute inset-0 bg-black/55" />
-                {/* Bottom gradient — text readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                {/* Gold border on hover */}
-                <div
-                  className="absolute inset-0 rounded-2xl transition-all duration-300 group-hover:shadow-[inset_0_0_0_1px_rgba(212,161,30,0.45)]"
-                  style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.07)' }}
-                />
-
-                {/* Content */}
-                <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
-                  <p
-                    className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2 opacity-70 group-hover:opacity-100 transition-opacity"
-                    style={{ color: card.accent }}
-                  >
-                    {card.count}
-                  </p>
-                  <h3 className="font-display font-black text-xl md:text-2xl text-white leading-none mb-2">
-                    {card.label}
-                  </h3>
-                  <p className="text-xs text-white/40 leading-relaxed hidden sm:block">
-                    {card.desc}
-                  </p>
-                  <div
-                    className="mt-4 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:gap-3"
-                    style={{ color: card.accent }}
-                  >
-                    Explore <ArrowRight className="w-3 h-3" />
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <TournamentTeaser />
         </div>
       </section>
 
@@ -330,29 +200,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── Divider ─── */}
-      <div className="container-page">
-        <div className="divider-court" />
-      </div>
-
-      {/* ─── Community Spotlight ─── */}
-      <section className="section-padding">
-        <div className="container-page">
-          <div className="flex items-center justify-between mb-8 md:mb-10">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1">Сообщество</p>
-              <h2 className="font-display font-black text-2xl md:text-3xl leading-none">
-                Звёзды недели
-              </h2>
-            </div>
-            <Link href="/ranking" className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
-              Рейтинг <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-          <CommunitySpotlight />
-        </div>
-      </section>
-
       {/* ─── Popular Courts ─── */}
       <section className="section-padding bg-court-gradient">
         <div className="container-page">
@@ -391,119 +238,6 @@ export default function HomePage() {
             </Link>
           </div>
           <LatestNews />
-        </div>
-      </section>
-
-      {/* ─── Latest Media ─── */}
-      <section className="section-padding bg-court-gradient">
-        <div className="container-page">
-          <div className="flex items-center justify-between mb-8 md:mb-10">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1">Контент</p>
-              <h2 className="font-display font-black text-2xl md:text-3xl leading-none">
-                Видео и фото
-              </h2>
-            </div>
-            <Link href="/media" className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
-              Всё медиа <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-          <LatestMedia />
-        </div>
-      </section>
-
-      {/* ─── Social channels ─── */}
-      <section className="section-padding">
-        <div className="container-page">
-          <div className="mb-10">
-            <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">Следи за нами</p>
-            <h2 className="font-display font-black text-2xl md:text-3xl">Каждый день на наших каналах</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border/60 max-w-3xl">
-            {[
-              {
-                href: 'https://www.youtube.com/@ubculture',
-                label: 'YouTube',
-                sub: '@ubculture',
-                iconColor: 'fill-red-500',
-                hoverBg: 'hover:bg-red-500/5',
-                svg: <svg viewBox="0 0 24 24" className="w-6 h-6 fill-red-500"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>,
-              },
-              {
-                href: 'https://t.me/ubculture',
-                label: 'Telegram',
-                sub: '@ubculture',
-                hoverBg: 'hover:bg-sky-500/5',
-                svg: <svg viewBox="0 0 24 24" className="w-6 h-6 fill-sky-400"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>,
-              },
-              {
-                href: 'https://www.instagram.com/ubcbasketbal/',
-                label: 'Instagram',
-                sub: '@ubcbasketbal',
-                hoverBg: 'hover:bg-pink-500/5',
-                svg: <svg viewBox="0 0 24 24" className="w-6 h-6 fill-pink-400"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>,
-              },
-            ].map(({ href, label, sub, hoverBg, svg }) => (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`group flex items-center gap-4 bg-card p-6 transition-all duration-300 ${hoverBg}`}
-              >
-                <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center shrink-0">
-                  {svg}
-                </div>
-                <div>
-                  <div className="font-display font-bold text-sm text-white">{label}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{sub}</div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── CTA ─── */}
-      <section className="section-padding">
-        <div className="container-page">
-          <div className="relative overflow-hidden bg-card border border-border p-10 md:p-16">
-            <div className="absolute inset-0 bg-court-gradient" />
-            <div className="absolute inset-0 bg-court-grid opacity-40" />
-
-            <div className="relative z-10 max-w-xl">
-              <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Начни прямо сейчас</p>
-              <h2 className="font-display font-black text-3xl md:text-5xl mb-5 leading-tight">
-                Готов выйти на{' '}
-                <span className="gradient-gold">корт?</span>
-              </h2>
-              <p className="text-muted-foreground mb-8 max-w-sm">
-                Создай свой первый Pickup Game и собери команду прямо сейчас.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  href="/pickup-games/create"
-                  className="inline-flex items-center gap-2 px-6 py-3 font-bold text-sm uppercase tracking-wide transition-all"
-                  style={{
-                    background: GOLD,
-                    color: '#0a0a0a',
-                    boxShadow: `0 0 32px hsl(43 75% 47% / 0.3)`,
-                  }}
-                >
-                  Создать Pickup Game
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-                <Link
-                  href="/pickup-games"
-                  className="inline-flex items-center gap-2 px-6 py-3 font-semibold text-sm uppercase tracking-wide border border-border text-muted-foreground hover:text-foreground hover:border-border/80 transition-all"
-                >
-                  Найти игру
-                </Link>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
     </>

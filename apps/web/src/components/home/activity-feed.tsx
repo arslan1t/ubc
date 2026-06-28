@@ -91,8 +91,8 @@ export function ActivityFeed({ className, compact }: { className?: string; compa
   }
 
   return (
-    <div className={cn('rounded-2xl border border-border/60 bg-card/50 overflow-hidden', className)}>
-      <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border/60">
+    <div className={cn('rounded-2xl overflow-hidden glass-content-card [&:hover]:!transform-none', className)}>
+      <div className="flex items-center gap-2.5 px-5 py-4 border-b border-white/[0.07]">
         <div className="relative flex items-center justify-center">
           <Radio className="w-4 h-4 text-primary relative z-10" />
           <span className="absolute w-2 h-2 rounded-full bg-primary animate-ping opacity-60" />

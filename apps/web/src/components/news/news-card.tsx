@@ -34,7 +34,7 @@ export function NewsCard({ article, featured, className }: NewsCardProps) {
   if (featured) {
     return (
       <Link href={`/news/${article.slug}`} className={cn('group block', className)}>
-        <article className="relative rounded-2xl border border-border/60 overflow-hidden transition-all duration-300 hover:border-primary/40 hover:shadow-[0_8px_40px_hsl(43_85%_53%/0.1)]">
+        <article className="relative rounded-2xl overflow-hidden transition-all duration-300 glass-content-card">
           {/* Full bleed image */}
           <div className="relative aspect-[21/9] bg-secondary/40">
             {article.coverUrl ? (
@@ -92,7 +92,7 @@ export function NewsCard({ article, featured, className }: NewsCardProps) {
 
   return (
     <Link href={`/news/${article.slug}`} className={cn('group block', className)}>
-      <article className="rounded-2xl border border-border/60 bg-card overflow-hidden h-full flex flex-col transition-all duration-300 hover:border-primary/40 hover:-translate-y-1 hover:shadow-[0_8px_24px_hsl(43_85%_53%/0.08)]">
+      <article className="rounded-2xl overflow-hidden h-full flex flex-col glass-content-card">
         <div className="relative aspect-video bg-secondary/30 overflow-hidden shrink-0">
           {article.coverUrl ? (
             <Image

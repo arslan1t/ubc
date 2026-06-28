@@ -30,7 +30,7 @@ export function MediaCard({ item, className }: MediaCardProps) {
 
   return (
     <Link href={`/media/${item.id}`} className={cn('group block', className)}>
-      <div className="rounded-xl border border-border bg-card overflow-hidden card-hover">
+      <div className="rounded-xl overflow-hidden glass-content-card">
         <div className="relative aspect-video bg-secondary/30">
           {thumbnail ? (
             <Image
