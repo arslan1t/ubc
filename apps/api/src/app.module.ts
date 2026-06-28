@@ -12,6 +12,9 @@ import { StorageModule } from './storage/storage.module';
 import { CommunityModule } from './community/community.module';
 import { ModerationModule } from './moderation/moderation.module';
 import { EventsModule } from './events/events.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { AuditLogsModule } from './audit-logs/audit-logs.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -28,6 +31,9 @@ import { EventsModule } from './events/events.module';
     CommunityModule,
     ModerationModule,
     EventsModule,
+    NotificationsModule,
+    AuditLogsModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}

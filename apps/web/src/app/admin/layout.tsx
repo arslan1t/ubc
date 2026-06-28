@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth, useMe, useLogout } from '@/hooks/use-auth';
 import { useModerationStats } from '@/hooks/use-moderation';
-import { Newspaper, Home, LogOut, ShieldCheck, Users, Trophy, MapPin, Zap, Film, Star } from 'lucide-react';
+import { Newspaper, Home, LogOut, ShieldCheck, Users, Trophy, MapPin, Zap, Film, Star, Bell, BarChart3, ScrollText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 
@@ -49,6 +49,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/news', label: 'Новости', icon: Newspaper, show: true },
     { href: '/admin/media', label: 'Медиа', icon: Film, show: true },
     { href: '/admin/reviews', label: 'Отзывы', icon: Star, show: true },
+    { href: '/admin/notifications', label: 'Уведомления', icon: Bell, show: true },
+    { href: '/admin/analytics', label: 'Аналитика', icon: BarChart3, show: true },
+    { href: '/admin/logs', label: 'Журнал', icon: ScrollText, show: isAdmin },
     { href: '/admin/users', label: 'Пользователи', icon: Users, show: isAdmin },
   ].filter((n) => n.show);
 

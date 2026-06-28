@@ -6,6 +6,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { OpenRunStatus, ParticipantStatus } from '@prisma/client';
 import { CreateOpenRunDto, OpenRunFiltersDto } from './dto/open-run.dto';
 
@@ -22,7 +23,10 @@ const OPEN_RUN_INCLUDE = {
 
 @Injectable()
 export class OpenRunsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async findAll(filters: OpenRunFiltersDto) {
     const page = Math.max(1, filters.page ?? 1);
@@ -273,13 +277,27 @@ export class OpenRunsService {
     const run = await this.getRunOrFail(runId);
     if (run.organizerId !== organizerId) throw new ForbiddenException();
 
-    return this.prisma.openRunParticipant.update({
+    const participant = await this.prisma.openRunParticipant.update({
       where: { id: participantId },
       data: { status },
       include: {
         user: { select: { id: true, firstName: true, lastName: true } },
       },
     });
+
+    if (status === ParticipantStatus.APPROVED || status === ParticipantStatus.REJECTED) {
+      await this.notifications.create(
+        participant.userId,
+        'PICKUP_GAME_UPDATE',
+        status === ParticipantStatus.APPROVED
+          ? `Вас приняли в игру "${run.title ?? 'Pickup Game'}"`
+          : `Заявку на игру "${run.title ?? 'Pickup Game'}" отклонили`,
+        undefined,
+        `/pickup-games/${run.id}`,
+      );
+    }
+
+    return participant;
   }
 
   private async getRunOrFail(id: string) {
