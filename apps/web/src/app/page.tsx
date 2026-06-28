@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { MapPin, Zap, Activity, ChevronRight } from 'lucide-react';
 import { CommunityStats } from '@/components/home/community-stats';
 import { ActivityFeed } from '@/components/home/activity-feed';
@@ -18,14 +19,14 @@ export default function HomePage() {
         className="relative w-full overflow-hidden min-h-[440px] sm:min-h-0"
         style={{ aspectRatio: '16/9' }}
       >
-        {/* Background image — fills frame */}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: "url('/main.png')",
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
+        {/* Background image — optimized + responsive via next/image, priority for LCP */}
+        <Image
+          src="/main.png"
+          alt="Уличный баскетбол в Узбекистане"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
         />
 
         {/* Overlays — darker on mobile where text spans full width over the photo */}
