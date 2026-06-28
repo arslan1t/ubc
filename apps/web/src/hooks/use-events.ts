@@ -96,3 +96,71 @@ export function useUnregisterFromEvent(eventId: string, slug: string) {
     },
   });
 }
+
+// ─── Admin ───
+
+export interface EventFormValues {
+  title: string;
+  slug?: string;
+  status: EventStatus;
+  startDate: string;
+  location: string;
+  address?: string;
+  coverUrl?: string;
+  description?: string;
+  rules?: string;
+  prizePool?: string;
+  maxParticipants?: number;
+  resultsSummary?: string;
+}
+
+export function useCreateEvent() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (dto: EventFormValues) => api.post('/events', dto).then((r) => r.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      toast.success('Турнир создан');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message ?? 'Не удалось создать турнир');
+    },
+  });
+}
+
+export function useUpdateEvent() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, dto }: { id: string; dto: Partial<EventFormValues> }) =>
+      api.patch(`/events/${id}`, dto).then((r) => r.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      toast.success('Турнир обновлён');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message ?? 'Не удалось обновить турнир');
+    },
+  });
+}
+
+export function useDeleteEvent() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/events/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      toast.success('Турнир удалён');
+    },
+    onError: () => {
+      toast.error('Не удалось удалить турнир');
+    },
+  });
+}
+
+export function useEventRegistrationsAdmin(eventId: string) {
+  return useQuery<EventRegistrationEntry[]>({
+    queryKey: ['events', eventId, 'registrations'],
+    queryFn: async () => (await api.get(`/events/${eventId}/registrations`)).data,
+    enabled: !!eventId,
+  });
+}

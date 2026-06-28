@@ -57,6 +57,48 @@ export class OpenRunsService {
     };
   }
 
+  async adminFindAll(filters: OpenRunFiltersDto) {
+    const page = Math.max(1, filters.page ?? 1);
+    const limit = Math.min(50, filters.limit ?? 20);
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (filters.courtId) where.courtId = filters.courtId;
+    if (filters.date) where.date = new Date(filters.date);
+
+    const [runs, total] = await Promise.all([
+      this.prisma.openRun.findMany({
+        where,
+        include: OPEN_RUN_INCLUDE,
+        skip,
+        take: limit,
+        orderBy: { date: 'desc' },
+      }),
+      this.prisma.openRun.count({ where }),
+    ]);
+
+    return {
+      data: runs.map(this.formatRun),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async adminCancel(id: string) {
+    const run = await this.getRunOrFail(id);
+    if (run.status === OpenRunStatus.CANCELLED) {
+      throw new BadRequestException('Игра уже отменена');
+    }
+
+    return this.prisma.openRun.update({
+      where: { id },
+      data: { status: OpenRunStatus.CANCELLED },
+      include: OPEN_RUN_INCLUDE,
+    });
+  }
+
   async findOne(id: string, userId?: string) {
     const run = await this.prisma.openRun.findUnique({
       where: { id },
