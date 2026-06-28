@@ -26,7 +26,7 @@ export function CourtCard({ court, className }: CourtCardProps) {
 
   return (
     <Link href={`/courts/${court.slug}`} className={cn('group block', className)}>
-      <div className="rounded-2xl border border-border/60 bg-card overflow-hidden transition-all duration-300 hover:border-primary/40 hover:-translate-y-1 hover:shadow-[0_8px_32px_hsl(43_85%_53%/0.1)]">
+      <div className="rounded-2xl overflow-hidden glass-content-card">
         {/* Image — 16:9 for editorial feel */}
         <div className="relative aspect-video bg-secondary/30 overflow-hidden">
           {cover ? (

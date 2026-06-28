@@ -11,6 +11,7 @@ import { MediaModule } from './media/media.module';
 import { StorageModule } from './storage/storage.module';
 import { CommunityModule } from './community/community.module';
 import { ModerationModule } from './moderation/moderation.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ModerationModule } from './moderation/moderation.module';
     MediaModule,
     CommunityModule,
     ModerationModule,
+    EventsModule,
   ],
 })
 export class AppModule {}

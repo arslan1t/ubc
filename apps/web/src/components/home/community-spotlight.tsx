@@ -24,7 +24,7 @@ export function CommunitySpotlight({ className }: { className?: string }) {
   return (
     <div className={cn('grid sm:grid-cols-2 gap-4', className)}>
       {/* Player of the week */}
-      <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 to-card p-5">
+      <div className="relative overflow-hidden rounded-2xl p-5" style={{ background: 'rgba(13,13,13,0.82)', backdropFilter: 'blur(20px) saturate(150%)', WebkitBackdropFilter: 'blur(20px) saturate(150%)', border: '1px solid rgba(212,161,30,0.18)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 4px 20px rgba(0,0,0,0.35)' }}>
         <div className="flex items-center gap-2 mb-4">
           <Trophy className="w-4 h-4 text-primary" />
           <span className="font-display font-bold text-xs uppercase tracking-wider text-primary">
@@ -78,7 +78,7 @@ export function CommunitySpotlight({ className }: { className?: string }) {
       {/* Court of the week */}
       <Link
         href={court ? `/courts/${court.slug}` : '/courts'}
-        className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 hover:border-primary/40 transition-colors"
+        className="group relative overflow-hidden rounded-2xl p-5 glass-content-card"
       >
         <div className="flex items-center gap-2 mb-4">
           <Star className="w-4 h-4 text-amber-400" />
