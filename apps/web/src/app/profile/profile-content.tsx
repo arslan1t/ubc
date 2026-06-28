@@ -12,7 +12,6 @@ import { useAuth, useMe, useLogout } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { OpenRunCard } from '@/components/open-runs/open-run-card';
 import { MySubmissions } from '@/components/profile/my-submissions';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,7 +19,7 @@ import api from '@/lib/api';
 import { getInitials, formatDate } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import {
-  LogOut, Edit3, TrendingUp, Trophy, MapPin, Newspaper,
+  LogOut, Edit3, Trophy, MapPin, Newspaper,
   Zap, Star, Award, ChevronRight,
 } from 'lucide-react';
 
@@ -152,7 +151,9 @@ export function ProfileContent() {
                   {roleMeta.label}
                 </span>
               </div>
-              <p className="text-muted-foreground text-sm mb-4">{user?.email}</p>
+              <p className="text-muted-foreground text-sm mb-4">
+                {user?.email ?? (user?.telegramUsername ? `@${user.telegramUsername}` : 'Telegram-аккаунт')}
+              </p>
 
               {/* Mini stats row */}
               <div className="flex flex-wrap gap-4">
@@ -275,27 +276,6 @@ export function ProfileContent() {
                 </dl>
               </div>
             )}
-
-            {/* Coming soon sections */}
-            <div className="grid sm:grid-cols-2 gap-4">
-              {[
-                { icon: TrendingUp, color: 'text-emerald-400', bg: 'bg-emerald-400/10', title: 'Статистика', desc: 'Игровая статистика — очки, передачи, эффективность' },
-                { icon: Trophy, color: 'text-violet-400', bg: 'bg-violet-400/10', title: 'Достижения', desc: 'Бейджи, ранги и награды за активность' },
-              ].map(({ icon: Icon, color, bg, title, desc }) => (
-                <div key={title} className="rounded-2xl border border-dashed border-border/50 bg-card/30 p-5 flex items-start gap-4">
-                  <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', bg)}>
-                    <Icon className={cn('w-5 h-5', color)} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-display font-semibold text-sm">{title}</h3>
-                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Скоро</Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">{desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
           </motion.div>
         )}
 

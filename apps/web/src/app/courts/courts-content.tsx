@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { useCourts } from '@/hooks/use-courts';
 import { CourtCard } from '@/components/courts/court-card';
 import { CourtFilters } from '@/components/courts/court-filters';
-import { YandexMap } from '@/components/courts/yandex-map';
+import { YandexMap, MAP_AVAILABLE } from '@/components/courts/yandex-map';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function CourtsPageContent() {
@@ -47,16 +47,18 @@ export function CourtsPageContent() {
       </section>
 
       <div className="container-page py-8 space-y-8">
-        {/* Map */}
-        <div className="rounded-2xl overflow-hidden border border-border/60 shadow-[0_4px_24px_rgba(0,0,0,0.3)]" style={{ height: '460px' }}>
-          {isLoading ? (
-            <div className="w-full h-full bg-secondary/30 flex items-center justify-center animate-pulse">
-              <Map className="w-10 h-10 text-muted-foreground/20" />
-            </div>
-          ) : (
-            <YandexMap courts={courts} />
-          )}
-        </div>
+        {/* Map — only when a real Yandex key is configured */}
+        {MAP_AVAILABLE && (
+          <div className="rounded-2xl overflow-hidden border border-border/60 shadow-[0_4px_24px_rgba(0,0,0,0.3)] h-[320px] sm:h-[460px]">
+            {isLoading ? (
+              <div className="w-full h-full bg-secondary/30 flex items-center justify-center animate-pulse">
+                <Map className="w-10 h-10 text-muted-foreground/20" />
+              </div>
+            ) : (
+              <YandexMap courts={courts} />
+            )}
+          </div>
+        )}
 
         {/* Filters */}
         <CourtFilters />

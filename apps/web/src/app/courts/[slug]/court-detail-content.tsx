@@ -13,7 +13,7 @@ import { ReviewList } from '@/components/courts/review-list';
 import {
   MapPin, Star, Sun, Building, ArrowLeft, ExternalLink,
 } from 'lucide-react';
-import { YandexMap } from '@/components/courts/yandex-map';
+import { YandexMap, MAP_AVAILABLE } from '@/components/courts/yandex-map';
 import { ReportButton } from '@/components/shared/report-button';
 import { formatDate } from '@/lib/utils';
 
@@ -175,20 +175,22 @@ export function CourtDetailContent({ slug }: { slug: string }) {
           {/* Мини-карта */}
           <div>
             <h3 className="font-display font-semibold text-lg mb-3">На карте</h3>
-            <div className="rounded-xl overflow-hidden border border-border" style={{ height: '220px' }}>
-              <YandexMap
-                courts={[court]}
-                center={[court.latitude, court.longitude]}
-                zoom={16}
-              />
-            </div>
+            {MAP_AVAILABLE && (
+              <div className="rounded-xl overflow-hidden border border-border mb-2" style={{ height: '220px' }}>
+                <YandexMap
+                  courts={[court]}
+                  center={[court.latitude, court.longitude]}
+                  zoom={16}
+                />
+              </div>
+            )}
             <a
               href={`https://yandex.com/maps/?pt=${court.longitude},${court.latitude}&z=17&l=map`}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors"
             >
-              <ExternalLink className="w-3 h-3" />
+              <ExternalLink className="w-3.5 h-3.5" />
               Открыть в Яндекс Картах
             </a>
           </div>

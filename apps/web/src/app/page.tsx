@@ -13,12 +13,12 @@ const GOLD_LIGHT = 'hsl(43 90% 64%)';
 export default function HomePage() {
   return (
     <>
-      {/* ─── Hero — 16:9 ─── */}
+      {/* ─── Hero — 16:9 on desktop, taller min-height on mobile ─── */}
       <section
-        className="relative w-full overflow-hidden"
+        className="relative w-full overflow-hidden min-h-[440px] sm:min-h-0"
         style={{ aspectRatio: '16/9' }}
       >
-        {/* Background image — fills 16:9 frame */}
+        {/* Background image — fills frame */}
         <div
           className="absolute inset-0"
           style={{
@@ -28,10 +28,10 @@ export default function HomePage() {
           }}
         />
 
-        {/* Overlays */}
-        <div className="absolute inset-0 bg-black/52" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/25 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0a0a0a]/40" />
+        {/* Overlays — darker on mobile where text spans full width over the photo */}
+        <div className="absolute inset-0 bg-black/60 sm:bg-black/52" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-black/10 sm:from-black/75 sm:via-black/25 sm:to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0a0a0a]/50" />
 
         {/* All content is absolutely positioned to fit within the 16:9 frame */}
         <div
@@ -76,8 +76,8 @@ export default function HomePage() {
                 </h1>
 
                 {/* Subtitle */}
-                <p className="text-[clamp(0.7rem,1.1vw,1rem)] text-white/50 leading-relaxed mb-[3%]">
-                  The home of basketball culture in Uzbekistan.
+                <p className="text-[clamp(0.78rem,1.1vw,1rem)] text-white/70 leading-relaxed mb-[3%] max-w-md">
+                  The home of basketball culture in Uzbekistan.{' '}
                   <br className="hidden sm:block" />
                   Find games, discover courts and connect with players.
                 </p>
