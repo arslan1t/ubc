@@ -6,8 +6,6 @@ const LINKS = {
     { href: '/courts', label: 'Корты' },
     { href: '/pickup-games', label: 'Pickup Games' },
     { href: '/pickup-games/create', label: 'Создать игру' },
-    { href: '/players', label: 'Игроки' },
-    { href: '/ranking', label: 'Рейтинг' },
   ],
   content: [
     { href: '/news', label: 'Новости' },

@@ -25,6 +25,14 @@ declare global {
   }
 }
 
+const RAW_KEY = process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY;
+// Treat unset or the scaffold placeholder as "no map configured" so we never
+// render a permanently-loading broken map in production.
+const MAP_KEY =
+  RAW_KEY && RAW_KEY !== 'your-yandex-maps-api-key' ? RAW_KEY : null;
+
+export const MAP_AVAILABLE = MAP_KEY !== null;
+
 export function YandexMap({
   courts,
   center = [41.2995, 69.2401],
@@ -34,7 +42,8 @@ export function YandexMap({
   const mapInstanceRef = useRef<any>(null);
 
   useEffect(() => {
-    const apiKey = process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY;
+    if (!MAP_KEY) return;
+    const apiKey = MAP_KEY;
     const scriptId = 'yandex-maps-script';
     let cancelled = false;
 
