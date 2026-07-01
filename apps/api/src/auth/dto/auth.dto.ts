@@ -1,10 +1,12 @@
 import {
   IsEmail,
   IsString,
+  IsNumber,
   MinLength,
   IsOptional,
   Matches,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegisterDto {
@@ -51,6 +53,8 @@ export class RefreshTokenDto {
 
 export class TelegramAuthDto {
   @ApiProperty()
+  @IsNumber()
+  @Type(() => Number)
   id: number;
 
   @ApiPropertyOptional()
@@ -74,6 +78,8 @@ export class TelegramAuthDto {
   photo_url?: string;
 
   @ApiProperty()
+  @IsNumber()
+  @Type(() => Number)
   auth_date: number;
 
   @ApiProperty()
