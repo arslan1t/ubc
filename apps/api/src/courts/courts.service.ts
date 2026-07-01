@@ -142,6 +142,13 @@ export class CourtsService {
     }
   }
 
+  // Admin delete — looks up the image's court so callers don't need to pass it.
+  async deleteImageAdmin(imageId: string) {
+    const image = await this.prisma.courtImage.findUnique({ where: { id: imageId } });
+    if (!image) throw new NotFoundException('Изображение не найдено');
+    await this.deleteImage(imageId, image.courtId);
+  }
+
   async createReview(courtId: string, userId: string, dto: CreateReviewDto) {
     const court = await this.prisma.court.findUnique({ where: { id: courtId } });
     if (!court) throw new NotFoundException('Корт не найден');

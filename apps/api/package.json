@@ -18,6 +18,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.716.0",
     "@aws-sdk/s3-request-presigner": "^3.716.0",
+    "@fastify/multipart": "^8",
     "@fastify/static": "^7.0.4",
     "@nestjs/common": "^10.4.15",
     "@nestjs/config": "^3.3.0",

@@ -91,6 +91,28 @@ export function useDeleteCourt() {
   });
 }
 
+export function useUploadCourtImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ courtId, file }: { courtId: string; file: File }) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      return api
+        .post(`/courts/${courtId}/images`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+        .then((r) => r.data);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: courtKeys.all }),
+  });
+}
+
+export function useDeleteCourtImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (imageId: string) => api.delete(`/courts/images/${imageId}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: courtKeys.all }),
+  });
+}
+
 export function useAdminReviews(page = 1) {
   return useQuery({
     queryKey: ['reviews', 'admin', page],
