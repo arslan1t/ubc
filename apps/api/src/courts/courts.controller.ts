@@ -11,7 +11,9 @@ import {
   Req,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
+import type { FastifyRequest } from 'fastify';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { CourtsService } from './courts.service';
@@ -81,6 +83,29 @@ export class CourtsController {
   @ApiOperation({ summary: 'Удалить корт (admin)' })
   remove(@Param('id') id: string) {
     return this.courtsService.remove(id);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Post(':id/images')
+  @ApiOperation({ summary: 'Загрузить фото корта (admin/moderator)' })
+  async uploadImage(@Param('id') id: string, @Req() req: FastifyRequest) {
+    const file = await req.file();
+    if (!file) throw new BadRequestException('Файл не найден в запросе');
+    if (!file.mimetype?.startsWith('image/')) {
+      throw new BadRequestException('Допускаются только изображения');
+    }
+    const buffer = await file.toBuffer();
+    return this.courtsService.addImage(id, buffer);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Delete('images/:imageId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Удалить фото корта (admin/moderator)' })
+  deleteImage(@Param('imageId') imageId: string) {
+    return this.courtsService.deleteImageAdmin(imageId);
   }
 
   @ApiBearerAuth()

@@ -6,6 +6,7 @@ import {
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import multipart from '@fastify/multipart';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
@@ -14,6 +15,11 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter({ logger: process.env.NODE_ENV !== 'production' }),
   );
+
+  // Image uploads (courts / news galleries) — 8MB cap, single file per request.
+  await app.register(multipart, {
+    limits: { fileSize: 8 * 1024 * 1024, files: 1 },
+  });
 
   const configService = app.get(ConfigService);
 

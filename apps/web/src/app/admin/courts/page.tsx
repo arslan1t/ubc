@@ -1,15 +1,77 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, Pencil, Trash2, ShieldCheck, Search } from 'lucide-react';
+import { useRef, useState } from 'react';
+import Image from 'next/image';
+import { toast } from 'sonner';
+import { Plus, Pencil, Trash2, ShieldCheck, Search, ImagePlus, X } from 'lucide-react';
 import {
   useAdminCourts,
   useCreateCourt,
   useUpdateCourt,
   useDeleteCourt,
+  useUploadCourtImage,
+  useDeleteCourtImage,
   type CourtFormValues,
 } from '@/hooks/use-courts';
 import { cn } from '@/lib/utils';
+
+function CourtImageManager({ court }: { court: any }) {
+  const upload = useUploadCourtImage();
+  const remove = useDeleteCourtImage();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const images = court.images ?? [];
+
+  const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Только изображения'); return; }
+    if (file.size > 8 * 1024 * 1024) { toast.error('Максимум 8 МБ'); return; }
+    upload.mutate(
+      { courtId: court.id, file },
+      { onSuccess: () => toast.success('Фото загружено'), onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Не удалось загрузить') },
+    );
+    e.target.value = '';
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-4 mb-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold">Фотографии — {court.name}</h3>
+        <button
+          onClick={() => inputRef.current?.click()}
+          disabled={upload.isPending}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50"
+        >
+          <ImagePlus className="w-3.5 h-3.5" /> {upload.isPending ? 'Загрузка…' : 'Добавить'}
+        </button>
+        <input ref={inputRef} type="file" accept="image/*" hidden onChange={onPick} />
+      </div>
+      {images.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Пока нет фотографий.</p>
+      ) : (
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+          {images.map((img: any) => (
+            <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden group">
+              <Image src={img.thumbnailUrl ?? img.url} alt="" fill className="object-cover" />
+              {img.isPrimary && (
+                <span className="absolute top-1 left-1 text-[9px] font-bold bg-primary text-primary-foreground px-1.5 py-0.5 rounded">
+                  Главное
+                </span>
+              )}
+              <button
+                onClick={() => remove.mutate(img.id)}
+                className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                aria-label="Удалить"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const EMPTY_FORM: CourtFormValues = {
   name: '',
@@ -215,6 +277,8 @@ export default function AdminCourtsPage() {
           onSubmit={(values) => update.mutate({ id: editingCourt.id, dto: values }, { onSuccess: () => setMode('none') })}
         />
       )}
+
+      {editingCourt && <CourtImageManager court={editingCourt} />}
 
       {isLoading ? (
         <div className="space-y-2">
