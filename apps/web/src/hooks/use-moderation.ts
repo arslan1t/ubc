@@ -59,6 +59,7 @@ export const useRequestChanges = () => useReviewMutation('request-changes');
 export interface AdminUser {
   id: string;
   email: string | null;
+  phone: string | null;
   firstName: string;
   lastName: string;
   avatarUrl: string | null;

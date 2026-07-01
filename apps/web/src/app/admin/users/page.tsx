@@ -50,7 +50,7 @@ export default function UsersPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Поиск по имени или email..."
+          placeholder="Поиск по имени, email или телефону..."
           className="w-full pl-9 pr-3 py-2 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:border-primary/50"
         />
       </div>
@@ -78,7 +78,7 @@ export default function UsersPage() {
                     {isSelf && <span className="text-[10px] text-muted-foreground">(вы)</span>}
                   </div>
                   <div className="text-xs text-muted-foreground truncate">
-                    {u.email ?? '—'} · {u.reputation} rep · с {formatDate(u.createdAt, 'MMM yyyy')}
+                    {u.email ?? u.phone ?? '—'} · {u.reputation} rep · с {formatDate(u.createdAt, 'MMM yyyy')}
                   </div>
                 </div>
 

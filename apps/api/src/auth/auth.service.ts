@@ -7,10 +7,11 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import { AuthProvider } from '@prisma/client';
+import { AuthProvider, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { RegisterDto, LoginDto, TelegramAuthDto } from './dto/auth.dto';
+import { TelegramBotService, ConfirmedTelegramSession } from '../telegram-bot/telegram-bot.service';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
+    private telegramBot: TelegramBotService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -130,6 +132,59 @@ export class AuthService {
     }
 
     return this.generateTokens(user);
+  }
+
+  startTelegramBotLogin() {
+    return this.telegramBot.createLoginSession();
+  }
+
+  async getTelegramBotLoginStatus(token: string) {
+    const session = await this.telegramBot.consumeConfirmedSession(token);
+    if (session === 'pending' || session === 'expired') {
+      return { status: session };
+    }
+
+    const user = await this.upsertUserFromTelegramBotSession(session);
+    const tokens = await this.generateTokens(user);
+    return { status: 'confirmed' as const, ...tokens };
+  }
+
+  private async upsertUserFromTelegramBotSession(
+    session: ConfirmedTelegramSession,
+  ): Promise<User> {
+    let user = await this.prisma.user.findUnique({ where: { telegramId: session.telegramId } });
+
+    if (!user) {
+      user = await this.createTelegramUser(session);
+    } else if (session.phone && user.phone !== session.phone) {
+      user = await this.prisma.user
+        .update({ where: { id: user.id }, data: { phone: session.phone } })
+        .catch(() => user!);
+    }
+
+    return user;
+  }
+
+  private async createTelegramUser(session: ConfirmedTelegramSession) {
+    const data = {
+      telegramId: session.telegramId,
+      telegramUsername: session.username ?? null,
+      firstName: session.firstName ?? 'Пользователь',
+      lastName: session.lastName ?? '',
+      avatarUrl: session.photoUrl ?? null,
+      phone: session.phone ?? undefined,
+      provider: AuthProvider.TELEGRAM,
+    };
+
+    try {
+      return await this.prisma.user.create({ data });
+    } catch (err: any) {
+      if (err?.code === 'P2002') {
+        // phone already belongs to another account — create without it
+        return this.prisma.user.create({ data: { ...data, phone: undefined } });
+      }
+      throw err;
+    }
   }
 
   async refreshTokens(refreshToken: string) {

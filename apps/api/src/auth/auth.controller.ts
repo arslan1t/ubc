@@ -3,6 +3,7 @@ import {
   Post,
   Body,
   Get,
+  Param,
   UseGuards,
   Req,
   Res,
@@ -54,6 +55,21 @@ export class AuthController {
   @ApiOperation({ summary: 'Вход через Telegram' })
   telegramAuth(@Body() dto: TelegramAuthDto) {
     return this.authService.handleTelegramAuth(dto);
+  }
+
+  @Public()
+  @Post('telegram-bot/start')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Начать вход через Telegram-бота (шеринг контакта)' })
+  startTelegramBotLogin() {
+    return this.authService.startTelegramBotLogin();
+  }
+
+  @Public()
+  @Get('telegram-bot/status/:token')
+  @ApiOperation({ summary: 'Статус сессии входа через Telegram-бота' })
+  getTelegramBotLoginStatus(@Param('token') token: string) {
+    return this.authService.getTelegramBotLoginStatus(token);
   }
 
   @Public()

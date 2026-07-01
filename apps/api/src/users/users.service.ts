@@ -13,6 +13,7 @@ import { ROLE_RANK } from '../common/guards/roles.guard';
 const USER_ADMIN_SELECT = {
   id: true,
   email: true,
+  phone: true,
   firstName: true,
   lastName: true,
   avatarUrl: true,
@@ -132,6 +133,7 @@ export class UsersService {
         { firstName: { contains: params.search, mode: 'insensitive' } },
         { lastName: { contains: params.search, mode: 'insensitive' } },
         { email: { contains: params.search, mode: 'insensitive' } },
+        { phone: { contains: params.search, mode: 'insensitive' } },
       ];
     }
 

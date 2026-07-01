@@ -40,6 +40,12 @@ enum AuthProvider {
   TELEGRAM
 }
 
+enum TelegramLoginStatus {
+  PENDING
+  CONFIRMED
+  EXPIRED
+}
+
 enum CourtType {
   INDOOR
   OUTDOOR
@@ -502,4 +508,27 @@ model AuditLog {
   @@index([actorId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ─────────────────────────────────────────────
+// TELEGRAM BOT LOGIN — one-tap "share contact" flow
+// ─────────────────────────────────────────────
+
+model TelegramLoginSession {
+  id          String              @id @default(uuid())
+  token       String              @unique
+  status      TelegramLoginStatus @default(PENDING)
+  chatId      String?
+  telegramId  String?
+  phone       String?
+  firstName   String?
+  lastName    String?
+  username    String?
+  photoUrl    String?
+  expiresAt   DateTime
+  createdAt   DateTime            @default(now())
+
+  @@index([chatId])
+  @@index([expiresAt])
+  @@map("telegram_login_sessions")
 }
