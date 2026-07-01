@@ -18,11 +18,25 @@ services:
       - key: JWT_REFRESH_SECRET
         generateValue: true
       - key: FRONTEND_URL
-        value: https://ubc-web.vercel.app
+        value: https://ubc-web-azure.vercel.app
       - key: DATABASE_URL
         fromDatabase:
           name: ubc-db
           property: connectionString
+      # ── Secrets — set the values in the Render dashboard (never committed) ──
+      # Required for Telegram Login (auth) and for photo uploads to Cloudflare R2.
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: R2_ENDPOINT
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      - key: R2_PUBLIC_URL
+        sync: false
 
 databases:
   - name: ubc-db
