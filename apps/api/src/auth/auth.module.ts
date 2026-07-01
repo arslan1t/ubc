@@ -8,9 +8,10 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { TelegramBotModule } from '../telegram-bot/telegram-bot.module';
 
 @Module({
-  imports: [PassportModule, JwtModule.register({})],
+  imports: [PassportModule, JwtModule.register({}), TelegramBotModule],
   providers: [
     AuthService,
     JwtStrategy,

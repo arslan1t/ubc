@@ -19,6 +19,12 @@ services:
         generateValue: true
       - key: FRONTEND_URL
         value: https://ubc-web-azure.vercel.app
+      - key: API_PUBLIC_URL
+        value: https://ubc-api.onrender.com
+      - key: TELEGRAM_BOT_USERNAME
+        value: ubculturebot
+      - key: TELEGRAM_WEBHOOK_SECRET
+        generateValue: true
       - key: DATABASE_URL
         fromDatabase:
           name: ubc-db

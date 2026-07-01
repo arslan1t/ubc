@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -69,34 +70,74 @@ export function useRegister() {
   });
 }
 
-export interface TelegramAuthPayload {
-  id: number;
-  first_name?: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-  auth_date: number;
-  hash: string;
+interface TelegramBotStatusResponse {
+  status: 'pending' | 'confirmed' | 'expired';
+  accessToken?: string;
+  refreshToken?: string;
 }
 
-export function useTelegramLogin() {
+export type TelegramBotLoginPhase = 'idle' | 'waiting' | 'expired' | 'error';
+
+export function useTelegramBotLogin() {
   const { setTokens } = useAuthStore();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const [token, setToken] = useState<string | null>(null);
+  const [phase, setPhase] = useState<TelegramBotLoginPhase>('idle');
+  const handledRef = useRef(false);
 
-  return useMutation({
-    mutationFn: (dto: TelegramAuthPayload) =>
-      api.post('/auth/telegram', dto).then((r) => r.data),
+  const startMutation = useMutation({
+    mutationFn: async () => {
+      const { data } = await api.post<{ token: string; deepLink: string }>(
+        '/auth/telegram-bot/start',
+      );
+      return data;
+    },
     onSuccess: (data) => {
+      handledRef.current = false;
+      setToken(data.token);
+      setPhase('waiting');
+      window.open(data.deepLink, '_blank', 'noopener,noreferrer');
+    },
+    onError: () => setPhase('error'),
+  });
+
+  const statusQuery = useQuery({
+    queryKey: ['telegram-bot-login-status', token],
+    queryFn: async () => {
+      const { data } = await api.get<TelegramBotStatusResponse>(
+        `/auth/telegram-bot/status/${token}`,
+      );
+      return data;
+    },
+    enabled: phase === 'waiting' && !!token,
+    refetchInterval: (query) =>
+      query.state.data?.status && query.state.data.status !== 'pending' ? false : 2000,
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    const data = statusQuery.data;
+    if (!data || handledRef.current) return;
+
+    if (data.status === 'confirmed' && data.accessToken && data.refreshToken) {
+      handledRef.current = true;
       setTokens(data.accessToken, data.refreshToken);
       queryClient.invalidateQueries({ queryKey: ['me'] });
       toast.success('Добро пожаловать!');
+      setPhase('idle');
       router.push('/');
-    },
-    onError: () => {
-      toast.error('Не удалось войти через Telegram');
-    },
-  });
+    } else if (data.status === 'expired') {
+      handledRef.current = true;
+      setPhase('expired');
+    }
+  }, [statusQuery.data, setTokens, queryClient, router]);
+
+  return {
+    start: () => startMutation.mutate(),
+    phase,
+    reset: () => setPhase('idle'),
+  };
 }
 
 export function useLogout() {
