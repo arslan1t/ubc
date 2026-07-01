@@ -239,7 +239,7 @@ export function ProfileContent() {
                 </div>
                 <div className="space-y-2">
                   <Label>Телефон</Label>
-                  <Input {...register('phone')} placeholder="+998901234567" className="rounded-xl" />
+                  <Input {...register('phone')} type="tel" inputMode="tel" autoComplete="tel" placeholder="+998901234567" className="rounded-xl" />
                   {errors.phone && <p className="text-xs text-destructive">Формат: +998XXXXXXXXX</p>}
                 </div>
                 <div className="space-y-2">
