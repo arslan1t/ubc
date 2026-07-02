@@ -12,10 +12,10 @@ import { getInitials } from '@/lib/utils';
 import { NotificationBell } from './notification-bell';
 
 const NAV_LINKS = [
-  { href: '/courts', label: 'Courts', hot: false },
-  { href: '/pickup-games', label: 'Games', hot: true },
-  { href: '/events', label: 'Events', hot: false },
-  { href: '/news', label: 'News', hot: false },
+  { href: '/courts', label: 'Корты', hot: false },
+  { href: '/pickup-games', label: 'Игры', hot: true },
+  { href: '/events', label: 'Ивенты', hot: false },
+  { href: '/news', label: 'Новости', hot: false },
 ];
 
 export function Navbar() {
@@ -122,7 +122,7 @@ export function Navbar() {
                 className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-amber-400 hover:text-amber-300 transition-colors rounded-md hover:bg-amber-400/10"
               >
                 <Shield className="w-3.5 h-3.5" />
-                Admin
+                Админ
               </Link>
             )}
 
@@ -164,7 +164,7 @@ export function Navbar() {
                           className="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-secondary transition-colors"
                         >
                           <User className="w-4 h-4 text-muted-foreground" />
-                          My Profile
+                          Профиль
                         </Link>
                         <Link
                           href="/pickup-games/create"
@@ -172,7 +172,7 @@ export function Navbar() {
                           className="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-secondary transition-colors"
                         >
                           <Zap className="w-4 h-4 text-primary" />
-                          Create Game
+                          Создать игру
                         </Link>
                         <div className="my-1 border-t border-border/60" />
                         <button
@@ -180,7 +180,7 @@ export function Navbar() {
                           className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/5 transition-colors"
                         >
                           <LogOut className="w-4 h-4" />
-                          Sign Out
+                          Выйти
                         </button>
                       </motion.div>
                     </>
@@ -193,13 +193,13 @@ export function Navbar() {
                   href="/auth/login"
                   className="px-4 py-1.5 text-sm font-semibold text-white/70 hover:text-white transition-colors"
                 >
-                  Login
+                  Войти
                 </Link>
                 <Link
                   href="/auth/register"
                   className="px-4 py-1.5 text-sm font-bold bg-primary text-[#0a0a0a] rounded-lg hover:bg-primary/90 transition-all hover:shadow-[0_0_20px_hsl(43_75%_47%/0.4)]"
                 >
-                  Sign Up
+                  Регистрация
                 </Link>
               </div>
             )}
@@ -303,7 +303,7 @@ export function Navbar() {
                     className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold uppercase tracking-wider text-amber-400 hover:bg-amber-400/10 transition-colors mt-2"
                   >
                     <Shield className="w-4 h-4" />
-                    Admin Panel
+                    Админ-панель
                   </Link>
                 )}
               </nav>
@@ -320,7 +320,7 @@ export function Navbar() {
                       </div>
                       <div>
                         <div className="text-sm font-semibold">{user?.firstName} {user?.lastName}</div>
-                        <div className="text-xs text-muted-foreground">My Profile</div>
+                        <div className="text-xs text-muted-foreground">Профиль</div>
                       </div>
                     </Link>
                     <button
@@ -328,7 +328,7 @@ export function Navbar() {
                       className="flex w-full items-center gap-2 rounded-xl px-4 py-2.5 text-sm text-destructive hover:bg-destructive/5 transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
-                      Sign Out
+                      Выйти
                     </button>
                   </div>
                 ) : (
@@ -337,13 +337,13 @@ export function Navbar() {
                       href="/auth/login"
                       className="block w-full text-center rounded-xl px-4 py-2.5 text-sm font-semibold hover:bg-secondary transition-colors"
                     >
-                      Login
+                      Войти
                     </Link>
                     <Link
                       href="/auth/register"
                       className="block w-full text-center rounded-xl px-4 py-2.5 text-sm font-bold bg-primary text-[#0a0a0a] hover:bg-primary/90 transition-colors"
                     >
-                      Sign Up
+                      Регистрация
                     </Link>
                   </div>
                 )}
