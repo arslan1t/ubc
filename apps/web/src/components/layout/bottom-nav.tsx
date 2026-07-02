@@ -7,10 +7,10 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 
 const ITEMS = [
-  { href: '/', label: 'Home', icon: Home, exact: true },
-  { href: '/courts', label: 'Courts', icon: MapPin },
-  { href: '/pickup-games', label: 'Pickup', icon: Zap },
-  { href: '/events', label: 'Events', icon: CalendarDays },
+  { href: '/', label: 'Главная', icon: Home, exact: true },
+  { href: '/courts', label: 'Корты', icon: MapPin },
+  { href: '/pickup-games', label: 'Игры', icon: Zap },
+  { href: '/events', label: 'Ивенты', icon: CalendarDays },
 ];
 
 export function BottomNav() {
@@ -20,7 +20,7 @@ export function BottomNav() {
 
   const items = [
     ...ITEMS,
-    { href: profileHref, label: 'Profile', icon: User },
+    { href: profileHref, label: 'Профиль', icon: User },
   ];
 
   return (
