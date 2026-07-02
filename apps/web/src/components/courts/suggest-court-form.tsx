@@ -1,22 +1,28 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { X, ImagePlus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
-import { useCreateSubmission } from '@/hooks/use-submissions';
+import { useCreateSubmission, useUploadSubmissionImage, type SubmissionImage } from '@/hooks/use-submissions';
 import { CourtLocationPicker } from '@/components/courts/court-location-picker';
+
+const CITIES = ['Ташкент', 'Самарканд', 'Бухара', 'Наманган', 'Андижан', 'Фергана', 'Нукус', 'Другой'];
 
 const schema = z.object({
   name: z.string().min(3, 'Минимум 3 символа'),
   address: z.string().min(3, 'Укажите адрес'),
   district: z.string().optional(),
+  city: z.string().min(1, 'Выберите город'),
   type: z.enum(['OUTDOOR', 'INDOOR']),
   surface: z.enum(['ASPHALT', 'CONCRETE', 'RUBBER', 'HARDWOOD', 'OTHER']),
   isFree: z.boolean(),
@@ -30,10 +36,15 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+const MAX_PHOTOS = 6;
+
 export function SuggestCourtForm() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
   const { mutate, isPending } = useCreateSubmission();
+  const { mutateAsync: uploadImage } = useUploadSubmissionImage();
+  const [photos, setPhotos] = useState<SubmissionImage[]>([]);
+  const [uploadingCount, setUploadingCount] = useState(0);
 
   const {
     register,
@@ -44,6 +55,7 @@ export function SuggestCourtForm() {
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
+      city: 'Ташкент',
       type: 'OUTDOOR',
       surface: 'ASPHALT',
       isFree: true,
@@ -69,9 +81,36 @@ export function SuggestCourtForm() {
     );
   }
 
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || !files.length) return;
+    const remaining = MAX_PHOTOS - photos.length;
+    const toUpload = Array.from(files).slice(0, remaining);
+    if (!toUpload.length) {
+      toast.error(`Можно добавить не больше ${MAX_PHOTOS} фото`);
+      return;
+    }
+
+    setUploadingCount((c) => c + toUpload.length);
+    for (const file of toUpload) {
+      if (!file.type.startsWith('image/')) continue;
+      try {
+        const result = await uploadImage(file);
+        setPhotos((prev) => [...prev, result]);
+      } catch {
+        toast.error(`Не удалось загрузить ${file.name}`);
+      } finally {
+        setUploadingCount((c) => c - 1);
+      }
+    }
+  };
+
+  const removePhoto = (key: string) => {
+    setPhotos((prev) => prev.filter((p) => p.key !== key));
+  };
+
   const onSubmit = (data: FormValues) => {
     mutate(
-      { type: 'COURT', payload: data },
+      { type: 'COURT', payload: { ...data, images: photos } },
       {
         onSuccess: () => {
           toast.success('Спасибо! Заявка отправлена на модерацию.');
@@ -91,7 +130,15 @@ export function SuggestCourtForm() {
         {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid sm:grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label>Город *</Label>
+          <select {...register('city')} className="w-full h-10 rounded-lg border border-input bg-input px-3 text-sm">
+            {CITIES.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
         <div className="space-y-2">
           <Label>Адрес *</Label>
           <Input {...register('address')} placeholder="Улица, ориентир" />
@@ -162,6 +209,49 @@ export function SuggestCourtForm() {
           placeholder="Состояние корта, особенности, когда лучше приходить..."
           className="w-full rounded-lg border border-input bg-input px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Фото ({photos.length}/{MAX_PHOTOS})</Label>
+        <div className="flex flex-wrap gap-3">
+          {photos.map((photo) => (
+            <div key={photo.key} className="relative w-20 h-20 rounded-lg overflow-hidden border border-border group">
+              <Image src={photo.thumbnailUrl} alt="" fill className="object-cover" />
+              <button
+                type="button"
+                onClick={() => removePhoto(photo.key)}
+                className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
+          ))}
+
+          {uploadingCount > 0 &&
+            Array.from({ length: uploadingCount }).map((_, i) => (
+              <div key={`uploading-${i}`} className="w-20 h-20 rounded-lg border border-dashed border-border flex items-center justify-center">
+                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+              </div>
+            ))}
+
+          {photos.length + uploadingCount < MAX_PHOTOS && (
+            <label className="w-20 h-20 rounded-lg border border-dashed border-border flex flex-col items-center justify-center gap-1 cursor-pointer text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors">
+              <ImagePlus className="w-5 h-5" />
+              <span className="text-[10px]">Добавить</span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  handleFiles(e.target.files);
+                  e.target.value = '';
+                }}
+              />
+            </label>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground">Необязательно, но с фото заявку одобряют быстрее</p>
       </div>
 
       <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">

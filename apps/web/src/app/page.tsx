@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { MapPin, Zap, Activity, ChevronRight } from 'lucide-react';
+import { MapPin, Zap, ChevronRight } from 'lucide-react';
 import { CommunityStats } from '@/components/home/community-stats';
 import { ActivityFeed } from '@/components/home/activity-feed';
 import { UpcomingOpenRuns } from '@/components/home/upcoming-open-runs';
@@ -19,15 +19,17 @@ export default function HomePage() {
         className="relative w-full overflow-hidden min-h-[440px] sm:min-h-0"
         style={{ aspectRatio: '16/9' }}
       >
-        {/* Background image — optimized + responsive via next/image, priority for LCP */}
-        <Image
-          src="/main.png"
-          alt="Уличный баскетбол в Узбекистане"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
+        {/* Background video — muted/looped, poster covers first paint for LCP */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          poster="/hero-poster.jpg"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        >
+          <source src="/hero-video.mp4" type="video/mp4" />
+        </video>
 
         {/* Overlays — darker on mobile where text spans full width over the photo */}
         <div className="absolute inset-0 bg-black/60 sm:bg-black/52" />
@@ -117,18 +119,18 @@ export default function HomePage() {
               <div
                 className="hidden lg:flex flex-col overflow-hidden rounded-2xl"
                 style={{
-                  background: 'rgba(10, 10, 10, 0.52)',
-                  backdropFilter: 'blur(40px) saturate(160%)',
-                  WebkitBackdropFilter: 'blur(40px) saturate(160%)',
-                  border: '1px solid rgba(255,255,255,0.09)',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1), 0 16px 48px rgba(0,0,0,0.6)',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  backdropFilter: 'blur(56px) saturate(180%)',
+                  WebkitBackdropFilter: 'blur(56px) saturate(180%)',
+                  border: '1px solid rgba(255,255,255,0.16)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.22), inset 0 0 0 1px rgba(255,255,255,0.03), 0 16px 48px rgba(0,0,0,0.45)',
                   maxHeight: 'clamp(220px, 40%, 340px)',
                 }}
               >
                 {/* Panel header */}
                 <div
                   className="flex items-center gap-2 px-4 py-3 shrink-0"
-                  style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+                  style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
                 >
                   <span className="relative flex h-2 w-2 shrink-0">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
@@ -171,7 +173,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-8 md:mb-10">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <Activity className="w-5 h-5 text-primary" />
+                <Image src="/icons/icon-pulse.png" alt="" width={20} height={20} className="w-5 h-5" />
                 <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-primary animate-ping" />
               </div>
               <div>
