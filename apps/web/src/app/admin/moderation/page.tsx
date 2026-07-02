@@ -62,12 +62,14 @@ export default function ModerationPage() {
   const items = data?.data ?? [];
 
   const handleReject = (id: string) => {
-    const note = window.prompt('Причина отклонения (необязательно):') ?? undefined;
-    reject.mutate({ id, note });
+    const note = window.prompt('Причина отклонения (необязательно):');
+    if (note === null) return; // cancelled — do NOT reject
+    reject.mutate({ id, note: note || undefined });
   };
   const handleChanges = (id: string) => {
-    const note = window.prompt('Что нужно доработать?') ?? undefined;
-    requestChanges.mutate({ id, note });
+    const note = window.prompt('Что нужно доработать?');
+    if (note === null) return; // cancelled — do NOT request changes
+    requestChanges.mutate({ id, note: note || undefined });
   };
 
   return (

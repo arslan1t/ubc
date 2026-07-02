@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import api from '@/lib/api';
 
 export type SubmissionType = 'COURT' | 'NEWS' | 'EVENT' | 'PHOTO' | 'REPORT' | 'RESULT';
@@ -39,6 +40,12 @@ export function useModerationQueue(filters: { status?: string; type?: string } =
   });
 }
 
+const REVIEW_SUCCESS_MESSAGE: Record<'approve' | 'reject' | 'request-changes', string> = {
+  approve: 'Заявка одобрена и опубликована',
+  reject: 'Заявка отклонена — перенесена во вкладку «Отклонено»',
+  'request-changes': 'Заявка отправлена на доработку — перенесена во вкладку «На доработке»',
+};
+
 function useReviewMutation(action: 'approve' | 'reject' | 'request-changes') {
   const qc = useQueryClient();
   return useMutation({
@@ -46,6 +53,10 @@ function useReviewMutation(action: 'approve' | 'reject' | 'request-changes') {
       api.post(`/moderation/submissions/${id}/${action}`, { note }).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: moderationKeys.all });
+      toast.success(REVIEW_SUCCESS_MESSAGE[action]);
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message ?? 'Не удалось обработать заявку');
     },
   });
 }
