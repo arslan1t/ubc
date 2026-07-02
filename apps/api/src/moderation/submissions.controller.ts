@@ -33,7 +33,7 @@ export class SubmissionsController {
       throw new BadRequestException('Допускаются только изображения');
     }
     const buffer = await file.toBuffer();
-    const result = await this.storage.uploadImage(buffer, `submissions/${userId}`);
+    const result = await this.storage.uploadImage(buffer, `submissions/${userId}`, file.mimetype);
     return {
       url: result.url,
       mediumUrl: result.mediumUrl,

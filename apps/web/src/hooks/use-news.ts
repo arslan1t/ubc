@@ -100,3 +100,43 @@ export function useDeleteNews() {
     },
   });
 }
+
+export function useUploadNewsCover() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, file }: { id: string; file: File }) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      const { data } = await api.post(`/news/${id}/cover`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: newsKeys.all }),
+  });
+}
+
+export function useAddNewsGalleryImage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, file }: { id: string; file: File }) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      const { data } = await api.post(`/news/${id}/gallery`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: newsKeys.all }),
+  });
+}
+
+export function useDeleteNewsGalleryImage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (imageId: string) => {
+      await api.delete(`/news/gallery/${imageId}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: newsKeys.all }),
+  });
+}

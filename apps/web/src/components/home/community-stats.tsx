@@ -62,7 +62,7 @@ export function CommunityStats({ className, inline }: { className?: string; inli
           const value = stats?.[key] ?? 0;
           return (
             <div key={key} className="flex items-center gap-3 px-5 py-3.5 flex-1">
-              <Image src={icon} alt="" width={20} height={20} className="w-5 h-5 shrink-0" />
+              <Image src={icon} alt="" width={26} height={26} className="w-6 h-6 shrink-0" />
               <div>
                 <div className="font-display font-black text-xl tabular-nums leading-none text-white">
                   {isLoading ? '—' : <AnimatedNumber value={value} />}
@@ -109,7 +109,7 @@ export function CommunityStats({ className, inline }: { className?: string; inli
             />
 
             <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-5', bg)}>
-              <Image src={icon} alt="" width={22} height={22} className="w-[22px] h-[22px]" />
+              <Image src={icon} alt="" width={28} height={28} className="w-7 h-7" />
             </div>
 
             <div className="font-display font-black tabular-nums leading-none text-white mb-1.5"

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,8 +12,140 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Eye, Edit, Save, Send } from 'lucide-react';
+import { Eye, Edit, Save, Send, X, ImagePlus, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  useUploadNewsCover,
+  useAddNewsGalleryImage,
+  useDeleteNewsGalleryImage,
+} from '@/hooks/use-news';
+
+const MAX_GALLERY = 10;
+
+interface GalleryImage {
+  id: string;
+  thumbnailUrl: string;
+}
+
+function NewsPhotos({
+  articleId,
+  coverUrl,
+  gallery,
+}: {
+  articleId: string;
+  coverUrl?: string | null;
+  gallery: GalleryImage[];
+}) {
+  const { mutateAsync: uploadCover, isPending: coverUploading } = useUploadNewsCover();
+  const { mutateAsync: addGalleryImage } = useAddNewsGalleryImage();
+  const { mutate: deleteGalleryImage } = useDeleteNewsGalleryImage();
+  const [galleryUploading, setGalleryUploading] = useState(0);
+
+  const handleCoverChange = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      await uploadCover({ id: articleId, file });
+    } catch {
+      toast.error('Не удалось загрузить обложку');
+    }
+  };
+
+  const handleGalleryFiles = async (files: FileList | null) => {
+    if (!files || !files.length) return;
+    const remaining = MAX_GALLERY - gallery.length;
+    const toUpload = Array.from(files).slice(0, remaining);
+    if (!toUpload.length) {
+      toast.error(`Можно добавить не больше ${MAX_GALLERY} фото`);
+      return;
+    }
+    setGalleryUploading((c) => c + toUpload.length);
+    for (const file of toUpload) {
+      if (!file.type.startsWith('image/')) continue;
+      try {
+        await addGalleryImage({ id: articleId, file });
+      } catch {
+        toast.error(`Не удалось загрузить ${file.name}`);
+      } finally {
+        setGalleryUploading((c) => c - 1);
+      }
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <Label className="text-sm font-medium">Обложка</Label>
+        <div className="mt-1.5 flex items-center gap-3">
+          {coverUrl ? (
+            <div className="relative w-28 h-20 rounded-lg overflow-hidden border border-border shrink-0">
+              <Image src={coverUrl} alt="" fill className="object-cover" />
+            </div>
+          ) : (
+            <div className="w-28 h-20 rounded-lg border border-dashed border-border flex items-center justify-center shrink-0 text-muted-foreground text-xs">
+              Нет
+            </div>
+          )}
+          <label className="flex items-center gap-2 rounded-lg border border-border bg-card/30 px-3 py-2 text-sm cursor-pointer hover:bg-secondary transition-colors">
+            {coverUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
+            {coverUploading ? 'Загружаем...' : coverUrl ? 'Заменить' : 'Загрузить обложку'}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={coverUploading}
+              onChange={(e) => {
+                handleCoverChange(e.target.files?.[0]);
+                e.target.value = '';
+              }}
+            />
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <Label className="text-sm font-medium">Галерея ({gallery.length}/{MAX_GALLERY})</Label>
+        <div className="mt-1.5 flex flex-wrap gap-3">
+          {gallery.map((img) => (
+            <div key={img.id} className="relative w-20 h-20 rounded-lg overflow-hidden border border-border group">
+              <Image src={img.thumbnailUrl} alt="" fill className="object-cover" />
+              <button
+                type="button"
+                onClick={() => deleteGalleryImage(img.id)}
+                className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
+          ))}
+
+          {galleryUploading > 0 &&
+            Array.from({ length: galleryUploading }).map((_, i) => (
+              <div key={`u-${i}`} className="w-20 h-20 rounded-lg border border-dashed border-border flex items-center justify-center">
+                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+              </div>
+            ))}
+
+          {gallery.length + galleryUploading < MAX_GALLERY && (
+            <label className="w-20 h-20 rounded-lg border border-dashed border-border flex flex-col items-center justify-center gap-1 cursor-pointer text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors">
+              <ImagePlus className="w-5 h-5" />
+              <span className="text-[10px]">Добавить</span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  handleGalleryFiles(e.target.files);
+                  e.target.value = '';
+                }}
+              />
+            </label>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const CATEGORIES = [
   { value: 'NEWS', label: 'Новости' },
@@ -33,8 +166,13 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 interface NewsFormProps {
-  defaultValues?: Partial<FormValues & { id: string; isPublished?: boolean }>;
-  onSubmit: (values: FormValues & { isPublished: boolean }) => Promise<void>;
+  defaultValues?: Partial<FormValues & {
+    id: string;
+    isPublished?: boolean;
+    coverUrl?: string | null;
+    gallery?: GalleryImage[];
+  }>;
+  onSubmit: (values: FormValues & { isPublished: boolean }) => Promise<{ id: string }>;
   submitLabel?: string;
 }
 
@@ -42,6 +180,7 @@ export function NewsForm({ defaultValues, onSubmit, submitLabel = 'Сохран�
   const router = useRouter();
   const [preview, setPreview] = useState(false);
   const [saving, setSaving] = useState(false);
+  const isNew = !defaultValues?.id;
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -58,9 +197,13 @@ export function NewsForm({ defaultValues, onSubmit, submitLabel = 'Сохран�
   const handleSave = async (values: FormValues, publish: boolean) => {
     setSaving(true);
     try {
-      await onSubmit({ ...values, isPublished: publish });
+      const result = await onSubmit({ ...values, isPublished: publish });
       toast.success(publish ? 'Статья опубликована!' : 'Черновик сохранён');
-      router.push('/admin/news');
+      if (isNew) {
+        router.push(`/admin/news/${result.id}/edit`);
+      } else {
+        router.push('/admin/news');
+      }
     } catch (e: any) {
       toast.error(e?.response?.data?.message ?? 'Ошибка сохранения');
     } finally {
@@ -108,6 +251,24 @@ export function NewsForm({ defaultValues, onSubmit, submitLabel = 'Сохран�
           placeholder="Краткое описание для превью..."
           {...register('excerpt')}
         />
+      </div>
+
+      {/* Photos — need an existing article id, so only shown once the draft is saved */}
+      <div>
+        <Label className="text-sm font-medium">Фото</Label>
+        <div className="mt-1.5">
+          {defaultValues?.id ? (
+            <NewsPhotos
+              articleId={defaultValues.id}
+              coverUrl={defaultValues.coverUrl}
+              gallery={defaultValues.gallery ?? []}
+            />
+          ) : (
+            <p className="text-xs text-muted-foreground rounded-lg border border-dashed border-border px-3 py-2.5">
+              Сначала сохраните черновик — потом сможете загрузить обложку и фото
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Content */}
