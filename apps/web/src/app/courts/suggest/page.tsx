@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { SuggestCourtForm } from '@/components/courts/suggest-court-form';
 
 export const metadata: Metadata = {
@@ -15,7 +16,9 @@ export default function SuggestCourtPage() {
       <p className="text-muted-foreground mb-8">
         Знаешь площадку, которой нет на карте? Помоги сообществу — добавь её.
       </p>
-      <SuggestCourtForm />
+      <Suspense>
+        <SuggestCourtForm />
+      </Suspense>
     </div>
   );
 }

@@ -164,9 +164,31 @@ export class ModerationService {
         `Заявка отклонена: ${TYPE_LABEL[sub.type]}`,
         note,
       );
+    } else if (status === SubmissionStatus.CHANGES_REQUESTED) {
+      await this.notifications.create(
+        sub.submittedById,
+        'SUBMISSION_CHANGES_REQUESTED',
+        `Нужно доработать: ${TYPE_LABEL[sub.type]}`,
+        note ?? 'Модератор запросил изменения — открой «Мои заявки», чтобы посмотреть комментарий и отправить заявку снова.',
+      );
     }
 
     return updated;
+  }
+
+  /** Owner edits and resubmits a CHANGES_REQUESTED submission — puts it back in the queue as PENDING. */
+  async resubmit(userId: string, id: string, payload: Record<string, any>) {
+    const sub = await this.prisma.submission.findUnique({ where: { id } });
+    if (!sub) throw new NotFoundException('Заявка не найдена');
+    if (sub.submittedById !== userId) throw new BadRequestException('Это не ваша заявка');
+    if (sub.status !== SubmissionStatus.CHANGES_REQUESTED) {
+      throw new BadRequestException('Отправить повторно можно только заявку, отправленную на доработку');
+    }
+
+    return this.prisma.submission.update({
+      where: { id },
+      data: { payload, status: SubmissionStatus.PENDING },
+    });
   }
 
   private async getPending(id: string): Promise<Submission> {
@@ -225,19 +247,39 @@ export class ModerationService {
       }
 
       case SubmissionType.NEWS: {
+        const images: Array<{ url: string; mediumUrl: string; thumbnailUrl: string; key?: string }> =
+          Array.isArray(p.images) ? p.images : [];
+        const cover = images[0];
+
         const news = await this.prisma.news.create({
           data: {
             title: p.title,
             slug: await this.uniqueNewsSlug(p.title),
             excerpt: p.excerpt ?? null,
             content: p.content ?? '',
-            coverUrl: p.coverUrl ?? null,
+            coverUrl: cover?.url ?? p.coverUrl ?? null,
+            coverKey: cover?.key ?? null,
             category: (p.category as NewsCategory) ?? NewsCategory.NEWS,
             authorId: sub.submittedById,
             isPublished: true,
             publishedAt: new Date(),
           },
         });
+
+        const gallery = images.slice(1);
+        if (gallery.length) {
+          await this.prisma.newsImage.createMany({
+            data: gallery.map((img, i) => ({
+              newsId: news.id,
+              url: img.url,
+              mediumUrl: img.mediumUrl,
+              thumbnailUrl: img.thumbnailUrl,
+              storageKey: img.key ?? '',
+              order: i,
+            })),
+          });
+        }
+
         return news.id;
       }
 

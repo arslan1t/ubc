@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
@@ -13,7 +13,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
-import { useCreateSubmission, useUploadSubmissionImage, type SubmissionImage } from '@/hooks/use-submissions';
+import {
+  useCreateSubmission,
+  useUploadSubmissionImage,
+  useResubmit,
+  useMySubmissions,
+  type SubmissionImage,
+} from '@/hooks/use-submissions';
 import { CourtLocationPicker } from '@/components/courts/court-location-picker';
 
 const CITIES = ['Ташкент', 'Самарканд', 'Бухара', 'Наманган', 'Андижан', 'Фергана', 'Нукус', 'Другой'];
@@ -38,13 +44,38 @@ type FormValues = z.infer<typeof schema>;
 
 const MAX_PHOTOS = 6;
 
+const EMPTY_VALUES: FormValues = {
+  name: '',
+  address: '',
+  district: '',
+  city: 'Ташкент',
+  type: 'OUTDOOR',
+  surface: 'ASPHALT',
+  isFree: true,
+  hasLighting: false,
+  hasChangingRooms: false,
+  hoops: 2,
+  description: '',
+  latitude: 0,
+  longitude: 0,
+};
+
 export function SuggestCourtForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const resubmitId = searchParams.get('resubmit');
   const { isAuthenticated } = useAuth();
-  const { mutate, isPending } = useCreateSubmission();
+  const { mutate: createSubmission, isPending: creating } = useCreateSubmission();
+  const { mutate: resubmit, isPending: resubmitting } = useResubmit();
   const { mutateAsync: uploadImage } = useUploadSubmissionImage();
+  const { data: mySubmissions } = useMySubmissions();
   const [photos, setPhotos] = useState<SubmissionImage[]>([]);
   const [uploadingCount, setUploadingCount] = useState(0);
+
+  const resubmitTarget = resubmitId
+    ? mySubmissions?.find((s) => s.id === resubmitId && s.status === 'CHANGES_REQUESTED')
+    : undefined;
+  const isPending = creating || resubmitting;
 
   const {
     register,
@@ -54,18 +85,15 @@ export function SuggestCourtForm() {
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      city: 'Ташкент',
-      type: 'OUTDOOR',
-      surface: 'ASPHALT',
-      isFree: true,
-      hasLighting: false,
-      hasChangingRooms: false,
-      hoops: 2,
-      latitude: 0,
-      longitude: 0,
-    },
+    defaultValues: EMPTY_VALUES,
+    values: resubmitTarget ? { ...EMPTY_VALUES, ...resubmitTarget.payload } : undefined,
   });
+
+  useEffect(() => {
+    if (resubmitTarget?.payload.images) {
+      setPhotos(resubmitTarget.payload.images);
+    }
+  }, [resubmitTarget]);
 
   const lat = watch('latitude');
   const lon = watch('longitude');
@@ -109,8 +137,25 @@ export function SuggestCourtForm() {
   };
 
   const onSubmit = (data: FormValues) => {
-    mutate(
-      { type: 'COURT', payload: { ...data, images: photos } },
+    const payload = { ...data, images: photos };
+
+    if (resubmitTarget) {
+      resubmit(
+        { id: resubmitTarget.id, payload },
+        {
+          onSuccess: () => {
+            toast.success('Заявка отправлена на повторную модерацию!');
+            router.push('/profile');
+          },
+          onError: (err: any) =>
+            toast.error(err?.response?.data?.message ?? 'Не удалось отправить'),
+        },
+      );
+      return;
+    }
+
+    createSubmission(
+      { type: 'COURT', payload },
       {
         onSuccess: () => {
           toast.success('Спасибо! Заявка отправлена на модерацию.');
@@ -124,6 +169,13 @@ export function SuggestCourtForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {resubmitTarget?.reviewNote && (
+        <div className="rounded-lg border border-sky-400/30 bg-sky-400/5 px-4 py-3 text-sm">
+          <p className="font-medium text-sky-400 mb-1">Комментарий модератора:</p>
+          <p className="text-muted-foreground">«{resubmitTarget.reviewNote}»</p>
+        </div>
+      )}
+
       <div className="space-y-2">
         <Label>Название *</Label>
         <Input {...register('name')} placeholder="Напр.: Корт в парке Бабура" />
@@ -260,7 +312,7 @@ export function SuggestCourtForm() {
 
       <div className="flex gap-3">
         <Button type="submit" variant="gold" size="lg" disabled={isPending}>
-          {isPending ? 'Отправляем...' : 'Отправить на модерацию'}
+          {isPending ? 'Отправляем...' : resubmitTarget ? 'Отправить повторно' : 'Отправить на модерацию'}
         </Button>
         <Button type="button" variant="outline" size="lg" onClick={() => router.back()}>
           Отмена

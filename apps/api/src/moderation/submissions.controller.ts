@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Get, Post, Body, Req } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Post, Patch, Body, Param, Req } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ModerationService } from './moderation.service';
@@ -46,5 +46,15 @@ export class SubmissionsController {
   @ApiOperation({ summary: 'Мои заявки и их статусы' })
   mine(@CurrentUser('id') userId: string) {
     return this.moderation.mySubmissions(userId);
+  }
+
+  @Patch(':id/resubmit')
+  @ApiOperation({ summary: 'Отредактировать и отправить заявку повторно (после «на доработку»)' })
+  resubmit(
+    @CurrentUser('id') userId: string,
+    @Param('id') id: string,
+    @Body('payload') payload: Record<string, any>,
+  ) {
+    return this.moderation.resubmit(userId, id, payload);
   }
 }

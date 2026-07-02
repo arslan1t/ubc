@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { SuggestNewsForm } from '@/components/news/suggest-news-form';
 
 export const metadata: Metadata = {
@@ -15,7 +16,9 @@ export default function SuggestNewsPage() {
       <p className="text-muted-foreground mb-8">
         Турнир, результат, история из площадки — расскажи сообществу.
       </p>
-      <SuggestNewsForm />
+      <Suspense>
+        <SuggestNewsForm />
+      </Suspense>
     </div>
   );
 }

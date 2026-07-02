@@ -33,6 +33,7 @@ const USER_SELECT = {
   reputation: true,
   phone: true,
   telegramUsername: true,
+  instagramUsername: true,
   avatarUrl: true,
   role: true,
   provider: true,
@@ -70,7 +71,7 @@ export class UsersService {
     });
   }
 
-  async uploadAvatar(userId: string, buffer: Buffer) {
+  async uploadAvatar(userId: string, buffer: Buffer, mimeType?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { avatarKey: true },
@@ -80,7 +81,7 @@ export class UsersService {
       await this.storage.deleteFile(user.avatarKey);
     }
 
-    const { key, url } = await this.storage.uploadAvatar(buffer);
+    const { key, url } = await this.storage.uploadAvatar(buffer, mimeType);
     return this.prisma.user.update({
       where: { id: userId },
       data: { avatarUrl: url, avatarKey: key },
