@@ -15,22 +15,27 @@ const GOLD_LIGHT = 'hsl(43 90% 64%)';
 export default function HomePage() {
   return (
     <>
-      {/* ─── Hero — solid black, ball video is a contained decorative element ─── */}
+      {/* ─── Hero — video fills the entire section as the background ─── */}
       <section
         className="relative w-full overflow-hidden bg-[#0a0a0a] min-h-[440px] sm:min-h-0"
         style={{ aspectRatio: '16/9' }}
       >
+        <HeroBallVideo />
+
+        {/* Scrim — keeps text legible over the video regardless of what's
+            playing behind it; heaviest on the left where the headline sits. */}
+        <div className="absolute inset-0 bg-black/45 sm:bg-black/35" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/35 to-black/10 sm:from-black/70 sm:via-black/20 sm:to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0a0a0a]/60" />
+
         {/* All content is absolutely positioned to fit within the 16:9 frame */}
         <div
           className="absolute inset-0 flex flex-col z-10"
           style={{ padding: '3.5% 4%' }}
         >
-          {/* Main row — hero text + live panel. Ball is centered on THIS row,
-              not the whole section, so it lines up with the text regardless
-              of how much height the stats bar below eats into. */}
-          <div className="relative flex-1 flex items-center">
-            <HeroBallVideo />
-            <div className="relative z-10 w-full grid lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_380px] gap-6 xl:gap-10 items-center">
+          {/* Main row — hero text + live panel */}
+          <div className="flex-1 flex items-center">
+            <div className="w-full grid lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_380px] gap-6 xl:gap-10 items-center">
 
               {/* LEFT — headline + CTAs */}
               <div className="max-w-2xl">
