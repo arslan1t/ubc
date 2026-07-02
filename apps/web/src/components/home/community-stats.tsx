@@ -37,7 +37,7 @@ function AnimatedNumber({ value, className }: { value: number; className?: strin
 }
 
 const ITEMS = [
-  { key: 'players',      label: 'Игроки',   sublabel: 'в сообществе', icon: '/icons/icon-community.png', color: 'text-sky-400',    bg: 'bg-sky-400/10'    },
+  { key: 'players',      label: 'Игроки',   sublabel: 'в сообществе', icon: '/icons/icon-community.svg', color: 'text-sky-400',    bg: 'bg-sky-400/10'    },
   { key: 'courts',       label: 'Корты',    sublabel: 'на карте',     icon: '/icons/icon-location.png',  color: 'text-emerald-400',bg: 'bg-emerald-400/10'},
   { key: 'gamesThisWeek',label: 'Игры',     sublabel: 'на этой неделе', icon: '/icons/icon-games.png',   color: 'text-primary',    bg: 'bg-primary/10'    },
   { key: 'news',         label: 'Статьи',   sublabel: 'опубликовано', icon: '/icons/icon-news.png',      color: 'text-violet-400', bg: 'bg-violet-400/10' },

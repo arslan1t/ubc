@@ -25,7 +25,7 @@ export function TournamentTeaser() {
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <Image src="/icons/icon-cup.png" alt="" width={20} height={20} className="w-5 h-5" />
+            <Image src="/icons/icon-cup.svg" alt="" width={20} height={20} className="w-5 h-5" />
             <span className="text-xs font-bold uppercase tracking-widest text-primary">
               Главный турнир
             </span>
