@@ -160,7 +160,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-8 md:mb-10">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <Image src="/icons/icon-pulse.png" alt="" width={26} height={26} className="w-6 h-6" />
+                <Image src="/icons/icon-pulse.svg" alt="" width={26} height={26} className="w-6 h-6" />
                 <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-primary animate-ping" />
               </div>
               <div>
