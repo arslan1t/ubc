@@ -202,6 +202,23 @@ export class ModerationService {
             isActive: true,
           },
         });
+
+        const images: Array<{ url: string; mediumUrl: string; thumbnailUrl: string; key?: string }> =
+          Array.isArray(p.images) ? p.images : [];
+        if (images.length) {
+          await this.prisma.courtImage.createMany({
+            data: images.map((img, i) => ({
+              courtId: court.id,
+              url: img.url,
+              mediumUrl: img.mediumUrl,
+              thumbnailUrl: img.thumbnailUrl,
+              storageKey: img.key ?? '',
+              isPrimary: i === 0,
+              order: i,
+            })),
+          });
+        }
+
         return court.id;
       }
 

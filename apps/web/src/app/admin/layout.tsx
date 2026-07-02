@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth, useMe, useLogout } from '@/hooks/use-auth';
 import { useModerationStats } from '@/hooks/use-moderation';
-import { Newspaper, Home, LogOut, ShieldCheck, Users, Trophy, MapPin, Zap, Film, Star, Bell, BarChart3, ScrollText } from 'lucide-react';
+import { Newspaper, Home, LogOut, ShieldCheck, Users, Trophy, MapPin, Zap, Film, Star, Bell, BarChart3, ScrollText, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 
@@ -23,10 +23,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { data: modStats } = useModerationStats();
 
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || (user && !STAFF_ROLES.includes(user.role)))) {
+    if (!isLoading && !isAuthenticated) {
       router.replace('/auth/login');
     }
-  }, [isAuthenticated, user, isLoading, router]);
+  }, [isAuthenticated, isLoading, router]);
 
   if (isLoading || !user) {
     return (
@@ -36,7 +36,40 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (!isStaff) return null;
+  if (!isStaff) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="max-w-sm w-full text-center rounded-2xl border border-border bg-card p-8">
+          <div className="w-12 h-12 rounded-full bg-destructive/10 text-destructive flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-5 h-5" />
+          </div>
+          <h1 className="font-display font-bold text-lg mb-2">Нет доступа к админке</h1>
+          <p className="text-sm text-muted-foreground mb-1">
+            Ты вошёл как <span className="text-foreground font-medium">{user.firstName} {user.lastName}</span>
+            {user.email ? <> ({user.email})</> : null} — у этого аккаунта роль «Игрок».
+          </p>
+          <p className="text-sm text-muted-foreground mb-6">
+            Админ-доступ привязан к отдельному аккаунту. Выйди и войди под ним — если это email/пароль,
+            на странице входа открой «Уже есть аккаунт с email или Google?».
+          </p>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={logout}
+              className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Выйти и войти под другим аккаунтом
+            </button>
+            <Link
+              href="/"
+              className="w-full rounded-lg border border-border px-4 py-2.5 text-sm font-medium hover:bg-secondary transition-colors"
+            >
+              На главную
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const isAdmin = ADMIN_ROLES.includes(user.role);
   const pending = modStats?.totalPending ?? 0;

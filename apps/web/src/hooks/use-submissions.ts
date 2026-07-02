@@ -18,6 +18,27 @@ export function useCreateSubmission() {
   });
 }
 
+export interface SubmissionImage {
+  url: string;
+  mediumUrl: string;
+  thumbnailUrl: string;
+  key: string;
+}
+
+export function useUploadSubmissionImage() {
+  return useMutation({
+    mutationFn: (file: File) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      return api
+        .post<SubmissionImage>('/submissions/upload-image', fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+        .then((r) => r.data);
+    },
+  });
+}
+
 export function useMySubmissions() {
   return useQuery<Submission[]>({
     queryKey: ['submissions', 'mine'],

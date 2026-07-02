@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Trophy } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowRight } from 'lucide-react';
 import { useEvents } from '@/hooks/use-events';
 import { Countdown } from '@/components/events/countdown';
 
@@ -24,7 +25,7 @@ export function TournamentTeaser() {
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <Trophy className="w-4 h-4 text-primary" />
+            <Image src="/icons/icon-cup.png" alt="" width={16} height={16} className="w-4 h-4" />
             <span className="text-xs font-bold uppercase tracking-widest text-primary">
               Главный турнир
             </span>

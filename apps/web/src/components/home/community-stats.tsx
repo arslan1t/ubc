@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { MapPin, Zap, Users, Newspaper } from 'lucide-react';
+import Image from 'next/image';
 import { useCommunityOverview } from '@/hooks/use-community';
 import { cn } from '@/lib/utils';
 
@@ -37,10 +37,10 @@ function AnimatedNumber({ value, className }: { value: number; className?: strin
 }
 
 const ITEMS = [
-  { key: 'players',      label: 'Players',  sublabel: 'in the community', icon: Users,     color: 'text-sky-400',    bg: 'bg-sky-400/10'    },
-  { key: 'courts',       label: 'Courts',   sublabel: 'on the map',       icon: MapPin,    color: 'text-emerald-400',bg: 'bg-emerald-400/10'},
-  { key: 'gamesThisWeek',label: 'Games',    sublabel: 'this week',        icon: Zap,       color: 'text-primary',    bg: 'bg-primary/10'    },
-  { key: 'news',         label: 'Articles', sublabel: 'published',        icon: Newspaper, color: 'text-violet-400', bg: 'bg-violet-400/10' },
+  { key: 'players',      label: 'Игроки',   sublabel: 'в сообществе', icon: '/icons/icon-community.png', color: 'text-sky-400',    bg: 'bg-sky-400/10'    },
+  { key: 'courts',       label: 'Корты',    sublabel: 'на карте',     icon: '/icons/icon-location.png',  color: 'text-emerald-400',bg: 'bg-emerald-400/10'},
+  { key: 'gamesThisWeek',label: 'Игры',     sublabel: 'на этой неделе', icon: '/icons/icon-games.png',   color: 'text-primary',    bg: 'bg-primary/10'    },
+  { key: 'news',         label: 'Статьи',   sublabel: 'опубликовано', icon: '/icons/icon-news.png',      color: 'text-violet-400', bg: 'bg-violet-400/10' },
 ] as const;
 
 export function CommunityStats({ className, inline }: { className?: string; inline?: boolean }) {
@@ -58,11 +58,11 @@ export function CommunityStats({ className, inline }: { className?: string; inli
           className,
         )}
       >
-        {ITEMS.map(({ key, label, sublabel, icon: Icon, color }) => {
+        {ITEMS.map(({ key, label, sublabel, icon, color }) => {
           const value = stats?.[key] ?? 0;
           return (
             <div key={key} className="flex items-center gap-3 px-5 py-3.5 flex-1">
-              <Icon className={cn('w-4 h-4 shrink-0', color)} />
+              <Image src={icon} alt="" width={20} height={20} className="w-5 h-5 shrink-0" />
               <div>
                 <div className="font-display font-black text-xl tabular-nums leading-none text-white">
                   {isLoading ? '—' : <AnimatedNumber value={value} />}
@@ -87,7 +87,7 @@ export function CommunityStats({ className, inline }: { className?: string; inli
       transition={{ duration: 0.5 }}
       className={cn('grid grid-cols-2 md:grid-cols-4 gap-4', className)}
     >
-      {ITEMS.map(({ key, label, sublabel, icon: Icon, color, bg }, i) => {
+      {ITEMS.map(({ key, label, sublabel, icon, color, bg }, i) => {
         const value = stats?.[key] ?? 0;
         return (
           <motion.div
@@ -109,7 +109,7 @@ export function CommunityStats({ className, inline }: { className?: string; inli
             />
 
             <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-5', bg)}>
-              <Icon className={cn('w-5 h-5', color)} />
+              <Image src={icon} alt="" width={22} height={22} className="w-[22px] h-[22px]" />
             </div>
 
             <div className="font-display font-black tabular-nums leading-none text-white mb-1.5"
