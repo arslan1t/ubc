@@ -1,6 +1,7 @@
 import {
   Injectable,
   Logger,
+  BadRequestException,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -10,7 +11,18 @@ import {
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
+import heicConvert from 'heic-convert';
 import { v4 as uuidv4 } from 'uuid';
+
+/** HEIC/HEIF files start with an ftyp box whose brand names one of these. */
+const HEIC_BRANDS = ['heic', 'heix', 'hevc', 'hevx', 'heim', 'heis', 'hevm', 'hevs', 'mif1', 'msf1'];
+
+function isHeic(buffer: Buffer, mimeType?: string): boolean {
+  if (mimeType && /hei[cf]/i.test(mimeType)) return true;
+  if (buffer.length < 12) return false;
+  const brand = buffer.toString('ascii', 8, 12).toLowerCase();
+  return HEIC_BRANDS.includes(brand);
+}
 
 export interface UploadResult {
   key: string;
@@ -68,14 +80,41 @@ export class StorageService {
   async uploadImage(
     buffer: Buffer,
     folder: string,
-    mimeType: string = 'image/jpeg',
+    mimeType?: string,
   ): Promise<UploadResult> {
     const id = uuidv4();
 
+    if (isHeic(buffer, mimeType)) {
+      try {
+        buffer = Buffer.from(
+          await heicConvert({ buffer, format: 'JPEG', quality: 0.92 }),
+        );
+      } catch {
+        throw new BadRequestException(
+          'Не удалось обработать HEIC-фото. Попробуйте другой файл или конвертируйте его в JPEG.',
+        );
+      }
+    }
+
+    // rotate() with no args auto-orients from EXIF — otherwise phone photos
+    // (especially HEIC) can land sideways. Cap the "original" at 1920px so a
+    // 12+ MP phone photo doesn't ship a multi-megabyte file for web display.
     const [original, medium, thumbnail] = await Promise.all([
-      sharp(buffer).jpeg({ quality: 85 }).toBuffer(),
-      sharp(buffer).resize(800, 600, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer(),
-      sharp(buffer).resize(400, 300, { fit: 'cover' }).jpeg({ quality: 75 }).toBuffer(),
+      sharp(buffer)
+        .rotate()
+        .resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 85, mozjpeg: true })
+        .toBuffer(),
+      sharp(buffer)
+        .rotate()
+        .resize(800, 600, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 80, mozjpeg: true })
+        .toBuffer(),
+      sharp(buffer)
+        .rotate()
+        .resize(400, 300, { fit: 'cover' })
+        .jpeg({ quality: 75, mozjpeg: true })
+        .toBuffer(),
     ]);
 
     const originalKey = `${folder}/${id}/original.jpg`;
@@ -98,11 +137,25 @@ export class StorageService {
     };
   }
 
-  async uploadAvatar(buffer: Buffer): Promise<{ key: string; url: string }> {
+  async uploadAvatar(buffer: Buffer, mimeType?: string): Promise<{ key: string; url: string }> {
     const id = uuidv4();
+
+    if (isHeic(buffer, mimeType)) {
+      try {
+        buffer = Buffer.from(
+          await heicConvert({ buffer, format: 'JPEG', quality: 0.92 }),
+        );
+      } catch {
+        throw new BadRequestException(
+          'Не удалось обработать HEIC-фото. Попробуйте другой файл или конвертируйте его в JPEG.',
+        );
+      }
+    }
+
     const processed = await sharp(buffer)
+      .rotate()
       .resize(256, 256, { fit: 'cover' })
-      .jpeg({ quality: 85 })
+      .jpeg({ quality: 85, mozjpeg: true })
       .toBuffer();
 
     const key = `avatars/${id}.jpg`;

@@ -96,7 +96,7 @@ export class CourtsController {
       throw new BadRequestException('Допускаются только изображения');
     }
     const buffer = await file.toBuffer();
-    return this.courtsService.addImage(id, buffer);
+    return this.courtsService.addImage(id, buffer, file.mimetype);
   }
 
   @ApiBearerAuth()

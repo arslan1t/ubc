@@ -136,24 +136,24 @@ export class NewsService {
     await this.prisma.news.delete({ where: { id } });
   }
 
-  async uploadCover(id: string, buffer: Buffer) {
+  async uploadCover(id: string, buffer: Buffer, mimeType?: string) {
     const article = await this.prisma.news.findUnique({ where: { id } });
     if (!article) throw new NotFoundException('Статья не найдена');
 
     if (article.coverKey) await this.storage.deleteFile(article.coverKey);
 
-    const result = await this.storage.uploadImage(buffer, `news/${id}/cover`);
+    const result = await this.storage.uploadImage(buffer, `news/${id}/cover`, mimeType);
     return this.prisma.news.update({
       where: { id },
       data: { coverUrl: result.url, coverKey: result.key },
     });
   }
 
-  async addGalleryImage(id: string, buffer: Buffer, caption?: string) {
+  async addGalleryImage(id: string, buffer: Buffer, mimeType?: string, caption?: string) {
     const article = await this.prisma.news.findUnique({ where: { id } });
     if (!article) throw new NotFoundException('Статья не найдена');
 
-    const result = await this.storage.uploadImage(buffer, `news/${id}/gallery`);
+    const result = await this.storage.uploadImage(buffer, `news/${id}/gallery`, mimeType);
     const count = await this.prisma.newsImage.count({ where: { newsId: id } });
 
     return this.prisma.newsImage.create({
@@ -167,5 +167,17 @@ export class NewsService {
         order: count,
       },
     });
+  }
+
+  async deleteGalleryImage(imageId: string) {
+    const image = await this.prisma.newsImage.findUnique({ where: { id: imageId } });
+    if (!image) throw new NotFoundException('Фото не найдено');
+
+    await this.storage.deleteFile(image.storageKey);
+    await this.storage.deleteMany([
+      image.storageKey.replace('original', 'medium'),
+      image.storageKey.replace('original', 'thumbnail'),
+    ]);
+    await this.prisma.newsImage.delete({ where: { id: imageId } });
   }
 }

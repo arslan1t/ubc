@@ -7,9 +7,12 @@ import {
   Body,
   Param,
   Query,
+  Req,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
+import type { FastifyRequest } from 'fastify';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { NewsService } from './news.service';
@@ -77,5 +80,42 @@ export class NewsController {
     @CurrentUser('role') userRole: UserRole,
   ) {
     return this.newsService.delete(id, userId, userRole);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Post(':id/cover')
+  @ApiOperation({ summary: 'Загрузить обложку статьи (moderator+)' })
+  async uploadCover(@Param('id') id: string, @Req() req: FastifyRequest) {
+    const file = await req.file();
+    if (!file) throw new BadRequestException('Файл не найден в запросе');
+    if (!file.mimetype?.startsWith('image/')) {
+      throw new BadRequestException('Допускаются только изображения');
+    }
+    const buffer = await file.toBuffer();
+    return this.newsService.uploadCover(id, buffer, file.mimetype);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Post(':id/gallery')
+  @ApiOperation({ summary: 'Добавить фото в галерею статьи (moderator+)' })
+  async addGalleryImage(@Param('id') id: string, @Req() req: FastifyRequest) {
+    const file = await req.file();
+    if (!file) throw new BadRequestException('Файл не найден в запросе');
+    if (!file.mimetype?.startsWith('image/')) {
+      throw new BadRequestException('Допускаются только изображения');
+    }
+    const buffer = await file.toBuffer();
+    return this.newsService.addGalleryImage(id, buffer, file.mimetype);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Delete('gallery/:imageId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Удалить фото из галереи (moderator+)' })
+  deleteGalleryImage(@Param('imageId') imageId: string) {
+    return this.newsService.deleteGalleryImage(imageId);
   }
 }

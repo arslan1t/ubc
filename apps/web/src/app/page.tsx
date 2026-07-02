@@ -7,6 +7,7 @@ import { UpcomingOpenRuns } from '@/components/home/upcoming-open-runs';
 import { PopularCourts } from '@/components/home/popular-courts';
 import { LatestNews } from '@/components/home/latest-news';
 import { TournamentTeaser } from '@/components/home/tournament-teaser';
+import { HeroBallVideo } from '@/components/home/hero-ball-video';
 
 const GOLD = 'hsl(43 75% 47%)';
 const GOLD_LIGHT = 'hsl(43 90% 64%)';
@@ -14,31 +15,17 @@ const GOLD_LIGHT = 'hsl(43 90% 64%)';
 export default function HomePage() {
   return (
     <>
-      {/* ─── Hero — 16:9 on desktop, taller min-height on mobile ─── */}
+      {/* ─── Hero — solid black, ball video is a contained decorative element ─── */}
       <section
-        className="relative w-full overflow-hidden min-h-[440px] sm:min-h-0"
+        className="relative w-full overflow-hidden bg-[#0a0a0a] min-h-[440px] sm:min-h-0"
         style={{ aspectRatio: '16/9' }}
       >
-        {/* Background video — muted/looped, poster covers first paint for LCP */}
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          poster="/hero-poster.jpg"
-          className="absolute inset-0 w-full h-full object-cover object-center"
-        >
-          <source src="/hero-video.mp4" type="video/mp4" />
-        </video>
-
-        {/* Overlays — darker on mobile where text spans full width over the photo */}
-        <div className="absolute inset-0 bg-black/60 sm:bg-black/52" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-black/10 sm:from-black/75 sm:via-black/25 sm:to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0a0a0a]/50" />
+        {/* Ball — shrunk, contained, radial-faded into the black bg (no hard edges) */}
+        <HeroBallVideo />
 
         {/* All content is absolutely positioned to fit within the 16:9 frame */}
         <div
-          className="absolute inset-0 flex flex-col"
+          className="absolute inset-0 flex flex-col z-10"
           style={{ padding: '3.5% 4%' }}
         >
           {/* Main row — hero text + live panel */}
@@ -173,7 +160,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-8 md:mb-10">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <Image src="/icons/icon-pulse.png" alt="" width={20} height={20} className="w-5 h-5" />
+                <Image src="/icons/icon-pulse.png" alt="" width={26} height={26} className="w-6 h-6" />
                 <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-primary animate-ping" />
               </div>
               <div>
@@ -204,7 +191,7 @@ export default function HomePage() {
       </section>
 
       {/* ─── Popular Courts ─── */}
-      <section className="section-padding bg-court-gradient">
+      <section className="section-padding">
         <div className="container-page">
           <div className="flex items-center justify-between mb-8 md:mb-10">
             <div>

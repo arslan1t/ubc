@@ -92,11 +92,11 @@ export class CourtsService {
     return this.formatCourt(court);
   }
 
-  async addImage(courtId: string, buffer: Buffer) {
+  async addImage(courtId: string, buffer: Buffer, mimeType?: string) {
     const court = await this.prisma.court.findUnique({ where: { id: courtId } });
     if (!court) throw new NotFoundException('Корт не найден');
 
-    const result = await this.storage.uploadImage(buffer, `courts/${courtId}`);
+    const result = await this.storage.uploadImage(buffer, `courts/${courtId}`, mimeType);
 
     const imageCount = await this.prisma.courtImage.count({ where: { courtId } });
     const isPrimary = imageCount === 0;
