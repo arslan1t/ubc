@@ -65,6 +65,7 @@ export class ModerationService {
   async list(params: {
     status?: SubmissionStatus;
     type?: SubmissionType;
+    submittedById?: string;
     page?: number;
     limit?: number;
   }) {
@@ -75,6 +76,7 @@ export class ModerationService {
     const where: any = {};
     if (params.status) where.status = params.status;
     if (params.type) where.type = params.type;
+    if (params.submittedById) where.submittedById = params.submittedById;
 
     const [data, total] = await Promise.all([
       this.prisma.submission.findMany({

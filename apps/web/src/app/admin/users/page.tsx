@@ -1,11 +1,60 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, ShieldCheck, Ban, RotateCcw } from 'lucide-react';
-import { useAdminUsers, useSetUserRole, useSetUserActive } from '@/hooks/use-moderation';
+import { Search, ShieldCheck, Ban, RotateCcw, ChevronDown, FileText } from 'lucide-react';
+import {
+  useAdminUsers,
+  useSetUserRole,
+  useSetUserActive,
+  useUserSubmissions,
+} from '@/hooks/use-moderation';
 import { useMe } from '@/hooks/use-auth';
-import { getInitials, formatDate, cn } from '@/lib/utils';
+import { getInitials, formatDate, formatRelativeDate, cn } from '@/lib/utils';
+import { payloadSummary, SUBMISSION_TYPE_LABEL } from '@/lib/submission-summary';
 import { toast } from 'sonner';
+
+const SUBMISSION_STATUS_LABEL: Record<string, string> = {
+  PENDING: 'Ожидает',
+  APPROVED: 'Одобрено',
+  REJECTED: 'Отклонено',
+  CHANGES_REQUESTED: 'На доработке',
+};
+const SUBMISSION_STATUS_COLOR: Record<string, string> = {
+  PENDING: 'text-amber-400 bg-amber-400/10',
+  APPROVED: 'text-emerald-400 bg-emerald-400/10',
+  REJECTED: 'text-destructive bg-destructive/10',
+  CHANGES_REQUESTED: 'text-sky-400 bg-sky-400/10',
+};
+
+function UserSubmissionsPanel({ userId }: { userId: string }) {
+  const { data, isLoading } = useUserSubmissions(userId, true);
+  const items = data?.data ?? [];
+
+  if (isLoading) {
+    return <div className="px-3 pb-3 text-xs text-muted-foreground">Загрузка...</div>;
+  }
+  if (items.length === 0) {
+    return <div className="px-3 pb-3 text-xs text-muted-foreground">Заявок пока нет</div>;
+  }
+
+  return (
+    <div className="px-3 pb-3 space-y-1.5">
+      {items.map((s) => {
+        const summary = payloadSummary(s);
+        return (
+          <div key={s.id} className="flex items-center gap-2 rounded-lg bg-secondary/30 px-2.5 py-1.5 text-xs">
+            <span className="text-muted-foreground shrink-0">{SUBMISSION_TYPE_LABEL[s.type]}</span>
+            <span className="truncate flex-1">{summary.title}</span>
+            <span className={cn('shrink-0 rounded-full px-2 py-0.5 font-medium', SUBMISSION_STATUS_COLOR[s.status])}>
+              {SUBMISSION_STATUS_LABEL[s.status]}
+            </span>
+            <span className="text-muted-foreground shrink-0">{formatRelativeDate(s.createdAt)}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 const ROLES = ['USER', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'] as const;
 const ROLE_RANK: Record<string, number> = { USER: 1, MODERATOR: 2, ADMIN: 3, SUPER_ADMIN: 4 };
@@ -24,6 +73,7 @@ const ROLE_COLOR: Record<string, string> = {
 
 export default function UsersPage() {
   const [search, setSearch] = useState('');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const { data: me } = useMe();
   const { data, isLoading } = useAdminUsers(search ? { search } : {});
   const setRole = useSetUserRole();
@@ -78,64 +128,74 @@ export default function UsersPage() {
             const isSelf = u.id === me?.id;
             // You can only manage users strictly below your rank.
             const canManage = !isSelf && ROLE_RANK[u.role] < myRank;
+            const expanded = expandedId === u.id;
             return (
               <div key={u.id} className={cn(
-                'flex items-center gap-3 rounded-xl border bg-card p-3',
+                'rounded-xl border bg-card',
                 u.isActive ? 'border-border' : 'border-destructive/40',
               )}>
-                <div className="w-9 h-9 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">
-                  {getInitials(u.firstName, u.lastName)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate flex items-center gap-2">
-                    {u.firstName} {u.lastName}
-                    {isSelf && <span className="text-[10px] text-muted-foreground">(вы)</span>}
-                    {!u.isActive && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-destructive">заблокирован</span>
-                    )}
+                <div className="flex items-center gap-3 p-3">
+                  <div className="w-9 h-9 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">
+                    {getInitials(u.firstName, u.lastName)}
                   </div>
-                  <div className="text-xs text-muted-foreground truncate">
-                    {u.email ?? u.phone ?? '—'} · {u.reputation} rep · с {formatDate(u.createdAt, 'MMM yyyy')}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate flex items-center gap-2">
+                      {u.firstName} {u.lastName}
+                      {isSelf && <span className="text-[10px] text-muted-foreground">(вы)</span>}
+                      {!u.isActive && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-destructive">заблокирован</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {u.email ?? u.phone ?? '—'} · {u.reputation} rep · с {formatDate(u.createdAt, 'MMM yyyy')}
+                    </div>
+                    <button
+                      onClick={() => setExpandedId(expanded ? null : u.id)}
+                      className="flex items-center gap-1 text-[11px] text-muted-foreground/70 hover:text-foreground transition-colors mt-0.5"
+                    >
+                      <FileText className="w-3 h-3" />
+                      {u._count.organizedRuns} игр · {u._count.reviews} отзывов · {u._count.submissions} заявок
+                      <ChevronDown className={cn('w-3 h-3 transition-transform', expanded && 'rotate-180')} />
+                    </button>
                   </div>
-                  <div className="text-[11px] text-muted-foreground/70 truncate mt-0.5">
-                    {u._count.organizedRuns} игр · {u._count.reviews} отзывов · {u._count.submissions} заявок
-                  </div>
+
+                  {canManage ? (
+                    <select
+                      value={u.role}
+                      disabled={setRole.isPending}
+                      onChange={(e) => changeRole(u.id, e.target.value)}
+                      className="text-xs rounded-lg bg-secondary border border-border px-2 py-1.5 focus:outline-none focus:border-primary/50"
+                    >
+                      {ROLES.map((r) => (
+                        <option key={r} value={r} disabled={ROLE_RANK[r] >= myRank}>
+                          {ROLE_LABEL[r]}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className={cn('inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium', ROLE_COLOR[u.role])}>
+                      {u.role === 'SUPER_ADMIN' && <ShieldCheck className="w-3 h-3" />}
+                      {ROLE_LABEL[u.role]}
+                    </span>
+                  )}
+
+                  {canManage && (
+                    <button
+                      onClick={() => toggleActive(u.id, u.isActive, `${u.firstName} ${u.lastName}`)}
+                      disabled={setActive.isPending}
+                      title={u.isActive ? 'Заблокировать' : 'Разблокировать'}
+                      className="p-2 rounded-lg hover:bg-secondary transition-colors disabled:opacity-50 shrink-0"
+                    >
+                      {u.isActive ? (
+                        <Ban className="w-4 h-4 text-destructive" />
+                      ) : (
+                        <RotateCcw className="w-4 h-4 text-emerald-400" />
+                      )}
+                    </button>
+                  )}
                 </div>
 
-                {canManage ? (
-                  <select
-                    value={u.role}
-                    disabled={setRole.isPending}
-                    onChange={(e) => changeRole(u.id, e.target.value)}
-                    className="text-xs rounded-lg bg-secondary border border-border px-2 py-1.5 focus:outline-none focus:border-primary/50"
-                  >
-                    {ROLES.map((r) => (
-                      <option key={r} value={r} disabled={ROLE_RANK[r] >= myRank}>
-                        {ROLE_LABEL[r]}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <span className={cn('inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium', ROLE_COLOR[u.role])}>
-                    {u.role === 'SUPER_ADMIN' && <ShieldCheck className="w-3 h-3" />}
-                    {ROLE_LABEL[u.role]}
-                  </span>
-                )}
-
-                {canManage && (
-                  <button
-                    onClick={() => toggleActive(u.id, u.isActive, `${u.firstName} ${u.lastName}`)}
-                    disabled={setActive.isPending}
-                    title={u.isActive ? 'Заблокировать' : 'Разблокировать'}
-                    className="p-2 rounded-lg hover:bg-secondary transition-colors disabled:opacity-50 shrink-0"
-                  >
-                    {u.isActive ? (
-                      <Ban className="w-4 h-4 text-destructive" />
-                    ) : (
-                      <RotateCcw className="w-4 h-4 text-emerald-400" />
-                    )}
-                  </button>
-                )}
+                {expanded && <UserSubmissionsPanel userId={u.id} />}
               </div>
             );
           })}

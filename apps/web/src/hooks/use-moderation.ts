@@ -33,7 +33,9 @@ export function useModerationStats() {
   });
 }
 
-export function useModerationQueue(filters: { status?: string; type?: string } = {}) {
+export function useModerationQueue(
+  filters: { status?: string; type?: string; submittedById?: string } = {},
+) {
   return useQuery<{ data: Submission[]; total: number }>({
     queryKey: moderationKeys.queue(filters),
     queryFn: async () => (await api.get('/moderation/submissions', { params: filters })).data,
@@ -64,6 +66,16 @@ function useReviewMutation(action: 'approve' | 'reject' | 'request-changes') {
 export const useApproveSubmission = () => useReviewMutation('approve');
 export const useRejectSubmission = () => useReviewMutation('reject');
 export const useRequestChanges = () => useReviewMutation('request-changes');
+
+/** Full submission history (any status) for one user — for admin "track this player" views. */
+export function useUserSubmissions(userId: string, enabled: boolean) {
+  return useQuery<{ data: Submission[]; total: number }>({
+    queryKey: moderationKeys.queue({ submittedById: userId }),
+    queryFn: async () =>
+      (await api.get('/moderation/submissions', { params: { submittedById: userId, limit: 50 } })).data,
+    enabled,
+  });
+}
 
 // ─── User management ───
 
