@@ -94,7 +94,8 @@ export class TelegramBotService implements OnModuleInit {
 
     if (typeof message.text === 'string' && message.text.startsWith('/start')) {
       const [, payload] = message.text.trim().split(/\s+/);
-      await this.handleStart(chatId, payload);
+      const fromId = message.from?.id != null ? String(message.from.id) : null;
+      await this.handleStart(chatId, payload, fromId);
       return;
     }
 
@@ -108,7 +109,7 @@ export class TelegramBotService implements OnModuleInit {
     }
   }
 
-  private async handleStart(chatId: string, token?: string) {
+  private async handleStart(chatId: string, token?: string, fromId?: string | null) {
     const frontendUrl = this.config.get<string>('FRONTEND_URL', 'https://ubc-web-azure.vercel.app');
 
     if (!token) {
@@ -132,6 +133,30 @@ export class TelegramBotService implements OnModuleInit {
       where: { id: session.id },
       data: { chatId },
     });
+
+    // Returning user — Telegram already tells us who's sending this, so log
+    // them in on the spot instead of making them share contact + retype name.
+    const existingUser = fromId
+      ? await this.prisma.user.findUnique({ where: { telegramId: fromId } })
+      : null;
+    if (existingUser) {
+      await this.prisma.telegramLoginSession.update({
+        where: { id: session.id },
+        data: {
+          status: 'CONFIRMED',
+          telegramId: fromId!,
+          phone: existingUser.phone,
+          firstName: existingUser.firstName,
+          lastName: existingUser.lastName,
+        },
+      });
+
+      await this.sendMessage(
+        chatId,
+        `✅ С возвращением, ${existingUser.firstName}! Вход выполнен.\n\nВозвращайся на вкладку сайта — через пару секунд ты будешь в своём аккаунте.`,
+      );
+      return;
+    }
 
     await this.sendMessage(
       chatId,
@@ -171,6 +196,31 @@ export class TelegramBotService implements OnModuleInit {
       : null;
 
     const telegramId = contact.user_id ? String(contact.user_id) : chatId;
+
+    // Returning user — already has a profile, so skip straight to confirmed
+    // instead of re-asking for a name every single login.
+    const existingUser = await this.prisma.user.findUnique({ where: { telegramId } });
+    if (existingUser) {
+      await this.prisma.telegramLoginSession.update({
+        where: { id: session.id },
+        data: {
+          status: 'CONFIRMED',
+          phone,
+          telegramId,
+          username: fromUsername ?? null,
+          firstName: existingUser.firstName,
+          lastName: existingUser.lastName,
+        },
+      });
+
+      await this.sendMessage(
+        chatId,
+        `✅ С возвращением, ${existingUser.firstName}! Вход выполнен.\n\nВозвращайся на вкладку сайта — через пару секунд ты будешь в своём аккаунте.`,
+        { remove_keyboard: true },
+      );
+      return;
+    }
+
     const photoUrl = await this.fetchProfilePhoto(telegramId);
 
     // Contact number confirmed, but NOT marking CONFIRMED yet — we still want
