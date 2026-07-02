@@ -1,14 +1,19 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Play, Image as ImageIcon, Mic, Radio } from 'lucide-react';
+import { Play, Image as ImageIcon, Mic } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+
+function PodcastIcon({ className }: { className?: string }) {
+  // eslint-disable-next-line @next/next/no-img-element -- tiny static SVG, not worth the next/image layout ceremony
+  return <img src="/icons/icon-podcast.svg" alt="" className={className} />;
+}
 
 const TYPE_CONFIG = {
   VIDEO: { label: 'Видео', icon: Play, variant: 'destructive' as const },
   PHOTO: { label: 'Фото', icon: ImageIcon, variant: 'secondary' as const },
   INTERVIEW: { label: 'Интервью', icon: Mic, variant: 'gold' as const },
-  PODCAST: { label: 'Подкаст', icon: Radio, variant: 'outline' as const },
+  PODCAST: { label: 'Подкаст', icon: PodcastIcon, variant: 'outline' as const },
 };
 
 interface MediaCardProps {
