@@ -8,6 +8,7 @@ import { useNews } from '@/hooks/use-news';
 import { NewsCard } from '@/components/news/news-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { QueryError } from '@/components/ui/query-error';
 
 const CATEGORIES = [
   { value: '', label: 'Все' },
@@ -24,7 +25,7 @@ export function NewsPageContent() {
   const searchParams = useSearchParams();
   const activeCategory = searchParams.get('category') ?? '';
 
-  const { data, isLoading } = useNews({ category: activeCategory || undefined });
+  const { data, isLoading, isError, refetch } = useNews({ category: activeCategory || undefined });
 
   const setCategory = (cat: string) => {
     const params = new URLSearchParams();
@@ -91,6 +92,8 @@ export function NewsPageContent() {
               ))}
             </div>
           </div>
+        ) : isError ? (
+          <QueryError onRetry={() => refetch()} />
         ) : articles.length ? (
           <motion.div
             initial="hidden"

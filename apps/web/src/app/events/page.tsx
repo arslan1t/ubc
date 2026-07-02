@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { EventsPageContent } from './events-content';
 
 export const metadata: Metadata = {
-  title: 'Ивенты — UBC',
+  title: 'Ивенты',
   description: 'Баскетбольные турниры и события Узбекистана',
 };
 

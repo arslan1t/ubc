@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Calendar, MapPin, Users, Trophy } from 'lucide-react';
 import { useEvents } from '@/hooks/use-events';
 import { formatDate } from '@/lib/utils';
+import { QueryError } from '@/components/ui/query-error';
 
 const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
   UPCOMING: { label: 'Скоро', cls: 'bg-sky-500/15 text-sky-400 border-sky-500/30' },
@@ -13,7 +14,7 @@ const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
 };
 
 export function EventsPageContent() {
-  const { data: events, isLoading } = useEvents();
+  const { data: events, isLoading, isError, refetch } = useEvents();
 
   return (
     <div className="min-h-screen">
@@ -52,6 +53,8 @@ export function EventsPageContent() {
               <div key={i} className="h-40 rounded-2xl bg-secondary/40 animate-pulse" />
             ))}
           </div>
+        ) : isError ? (
+          <QueryError onRetry={() => refetch()} />
         ) : !events || events.length === 0 ? (
           <div className="text-center py-16">
             <Trophy className="w-10 h-10 text-muted-foreground mx-auto mb-3" />

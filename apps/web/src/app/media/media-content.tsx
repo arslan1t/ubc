@@ -5,6 +5,7 @@ import { useMedia } from '@/hooks/use-media';
 import { MediaCard } from '@/components/media/media-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { QueryError } from '@/components/ui/query-error';
 
 const TYPES = [
   { value: '', label: 'Всё' },
@@ -19,7 +20,7 @@ export function MediaPageContent() {
   const searchParams = useSearchParams();
   const activeType = searchParams.get('type') ?? '';
 
-  const { data, isLoading } = useMedia({ type: activeType || undefined });
+  const { data, isLoading, isError, refetch } = useMedia({ type: activeType || undefined });
 
   const setType = (type: string) => {
     const params = new URLSearchParams();
@@ -59,6 +60,8 @@ export function MediaPageContent() {
             <Skeleton key={i} className="aspect-video rounded-xl" />
           ))}
         </div>
+      ) : isError ? (
+        <QueryError onRetry={() => refetch()} />
       ) : data?.data?.length ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {data.data.map((item: any) => (

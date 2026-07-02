@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
 import { SKILL_OPTIONS } from '@/lib/pickup';
 import { cn } from '@/lib/utils';
+import { QueryError } from '@/components/ui/query-error';
 
 const PRICE_FILTERS = [
   { key: 'isFree', value: 'true', label: 'Бесплатные' },
@@ -25,7 +26,7 @@ export function OpenRunsPageContent() {
   const filters: Record<string, any> = { upcoming: true };
   searchParams.forEach((value, key) => { filters[key] = value; });
 
-  const { data, isLoading } = useOpenRuns(filters);
+  const { data, isLoading, isError, refetch } = useOpenRuns(filters);
 
   const toggle = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -120,6 +121,8 @@ export function OpenRunsPageContent() {
               <Skeleton key={i} className="h-44 rounded-2xl" />
             ))}
           </div>
+        ) : isError ? (
+          <QueryError onRetry={() => refetch()} />
         ) : data?.data?.length ? (
           <>
             <motion.div

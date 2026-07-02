@@ -78,9 +78,9 @@ export default function HomePage() {
 
                 {/* Subtitle */}
                 <p className="text-[clamp(0.78rem,1.1vw,1rem)] text-white/70 leading-relaxed mb-[3%] max-w-md">
-                  The home of basketball culture in Uzbekistan.{' '}
+                  Дом баскетбольной культуры Узбекистана.{' '}
                   <br className="hidden sm:block" />
-                  Find games, discover courts and connect with players.
+                  Находи игры, открывай корты, знакомься с игроками.
                 </p>
 
                 {/* CTAs */}
@@ -93,7 +93,7 @@ export default function HomePage() {
                     }}
                   >
                     <Zap className="w-[1em] h-[1em]" />
-                    Find Game
+                    Найти игру
                   </Link>
                   <Link
                     href="/courts"
@@ -108,7 +108,7 @@ export default function HomePage() {
                     }}
                   >
                     <MapPin className="w-[1em] h-[1em]" />
-                    Find Court
+                    Найти корт
                   </Link>
                 </div>
               </div>
