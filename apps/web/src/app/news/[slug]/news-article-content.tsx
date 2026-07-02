@@ -71,12 +71,12 @@ export function NewsArticleContent({ slug }: { slug: string }) {
 
       {/* Мета */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground mb-8 pb-8 border-b border-border/60">
-        <div className="flex items-center gap-2">
+        <Link href={`/players/${article.author.id}`} className="flex items-center gap-2 group">
           <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0">
             {article.author.firstName?.[0]}{article.author.lastName?.[0]}
           </div>
-          <span>{article.author.firstName} {article.author.lastName}</span>
-        </div>
+          <span className="group-hover:text-primary transition-colors">{article.author.firstName} {article.author.lastName}</span>
+        </Link>
         {article.publishedAt && (
           <div className="flex items-center gap-1.5">
             <Calendar className="w-3.5 h-3.5" />

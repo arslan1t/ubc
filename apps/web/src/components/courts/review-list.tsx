@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Star } from 'lucide-react';
 import { formatRelativeDate, getInitials } from '@/lib/utils';
 
@@ -26,19 +27,19 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
       {reviews.map((review) => (
         <div key={review.id} className="rounded-lg border border-border bg-card/30 p-4">
           <div className="flex items-start justify-between gap-3 mb-2">
-            <div className="flex items-center gap-2">
+            <Link href={`/players/${review.user.id}`} className="flex items-center gap-2 group">
               <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0">
                 {getInitials(review.user.firstName, review.user.lastName)}
               </div>
               <div>
-                <div className="text-sm font-medium">
+                <div className="text-sm font-medium group-hover:text-primary transition-colors">
                   {review.user.firstName} {review.user.lastName}
                 </div>
                 <div className="text-xs text-muted-foreground">
                   {formatRelativeDate(review.createdAt)}
                 </div>
               </div>
-            </div>
+            </Link>
             <div className="flex items-center gap-0.5">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star

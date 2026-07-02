@@ -21,7 +21,7 @@ import { getInitials, formatDate } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import {
   LogOut, Edit3, Trophy, MapPin, Newspaper,
-  Zap, Star, Award, ChevronRight, Camera, Loader2,
+  Zap, Star, Award, ChevronRight, Camera, Loader2, Eye,
 } from 'lucide-react';
 
 const ROLE_META: Record<string, { label: string; color: string; bg: string }> = {
@@ -37,6 +37,8 @@ const schema = z.object({
   phone: z.string().regex(/^\+998[0-9]{9}$/).optional().or(z.literal('')),
   telegramUsername: z.string().optional(),
   instagramUsername: z.string().optional(),
+  city: z.string().max(80).optional(),
+  bio: z.string().max(280).optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -63,7 +65,14 @@ export function ProfileContent() {
   });
 
   const { mutate: updateProfile, isPending } = useMutation({
-    mutationFn: (data: FormValues) => api.patch('/users/me', data).then((r) => r.data),
+    // Empty strings → null so the API clears the field instead of failing
+    // format validation (e.g. phone regex rejects '').
+    mutationFn: (data: FormValues) => {
+      const payload = Object.fromEntries(
+        Object.entries(data).map(([k, v]) => [k, typeof v === 'string' && !v.trim() ? null : v]),
+      );
+      return api.patch('/users/me', payload).then((r) => r.data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['me'] });
       toast.success('Профиль обновлён');
@@ -80,6 +89,8 @@ export function ProfileContent() {
       phone: user?.phone ?? '',
       telegramUsername: user?.telegramUsername ?? '',
       instagramUsername: user?.instagramUsername ?? '',
+      city: user?.city ?? '',
+      bio: user?.bio ?? '',
     },
   });
 
@@ -199,6 +210,14 @@ export function ProfileContent() {
 
             {/* Actions */}
             <div className="flex gap-2 shrink-0">
+              {user?.id && (
+                <Button asChild variant="outline" size="sm" className="rounded-xl">
+                  <Link href={`/players/${user.id}`}>
+                    <Eye className="w-4 h-4 mr-1.5" />
+                    Мой профиль
+                  </Link>
+                </Button>
+              )}
               <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setEditing(!editing)}>
                 <Edit3 className="w-4 h-4 mr-1.5" />
                 Изменить
@@ -276,6 +295,20 @@ export function ProfileContent() {
                   <Label>Instagram</Label>
                   <Input {...register('instagramUsername')} placeholder="username" className="rounded-xl" />
                 </div>
+                <div className="space-y-2">
+                  <Label>Город</Label>
+                  <Input {...register('city')} placeholder="Ташкент" className="rounded-xl" />
+                </div>
+                <div className="space-y-2">
+                  <Label>О себе</Label>
+                  <textarea
+                    {...register('bio')}
+                    rows={3}
+                    maxLength={280}
+                    placeholder="Пара слов о себе — увидят другие игроки на твоей странице"
+                    className="w-full rounded-xl border border-input bg-input px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                </div>
                 <div className="flex gap-3">
                   <Button type="submit" variant="gold" disabled={isPending} className="rounded-xl">
                     {isPending ? 'Сохраняем...' : 'Сохранить'}
@@ -297,6 +330,8 @@ export function ProfileContent() {
                     { label: 'Телефон', value: user?.phone ?? '—' },
                     { label: 'Telegram', value: user?.telegramUsername ? `@${user.telegramUsername}` : '—' },
                     { label: 'Instagram', value: user?.instagramUsername ? `@${user.instagramUsername}` : '—' },
+                    { label: 'Город', value: user?.city ?? '—' },
+                    { label: 'О себе', value: user?.bio ?? '—' },
                     { label: 'На платформе с', value: user?.createdAt ? formatDate(user.createdAt) : '—' },
                   ].map(({ label, value }) => (
                     <div key={label} className="flex justify-between items-center py-3 text-sm">

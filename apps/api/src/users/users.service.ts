@@ -40,6 +40,29 @@ const USER_SELECT = {
   createdAt: true,
 };
 
+// What strangers see on /players/[id] — no phone, no email, no role.
+const USER_PUBLIC_SELECT = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  avatarUrl: true,
+  bio: true,
+  city: true,
+  reputation: true,
+  telegramUsername: true,
+  instagramUsername: true,
+  createdAt: true,
+};
+
+/** Accepts "@user", "user", "instagram.com/user", full https URLs — stores the bare username. */
+function normalizeInstagram(raw: string): string | null {
+  let v = raw.trim();
+  if (!v) return null;
+  v = v.replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@+/, '');
+  v = v.split(/[/?#]/)[0].trim();
+  return v || null;
+}
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -64,11 +87,63 @@ export class UsersService {
       if (existing) throw new ConflictException('Этот номер телефона уже используется');
     }
 
+    const data: Record<string, unknown> = { ...dto };
+    if (dto.instagramUsername !== undefined && dto.instagramUsername !== null) {
+      data.instagramUsername = normalizeInstagram(dto.instagramUsername);
+    }
+    // Blank text fields mean "clear it", not "store an empty string".
+    for (const key of ['telegramUsername', 'bio', 'city'] as const) {
+      if (typeof data[key] === 'string' && !(data[key] as string).trim()) data[key] = null;
+    }
+
     return this.prisma.user.update({
       where: { id: userId },
-      data: dto,
+      data,
       select: USER_SELECT,
     });
+  }
+
+  /** Public player page — safe fields + activity stats + upcoming games they organize. */
+  async getPublicProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        ...USER_PUBLIC_SELECT,
+        isActive: true,
+        _count: {
+          select: {
+            organizedRuns: true,
+            participations: { where: { status: 'APPROVED' } },
+            reviews: true,
+          },
+        },
+      },
+    });
+    if (!user || !user.isActive) throw new NotFoundException('Игрок не найден');
+
+    const upcomingRuns = await this.prisma.openRun.findMany({
+      where: { organizerId: userId, status: 'OPEN', isPublic: true, date: { gte: new Date() } },
+      orderBy: { date: 'asc' },
+      take: 5,
+      select: {
+        id: true,
+        title: true,
+        date: true,
+        startTime: true,
+        court: { select: { name: true, city: true } },
+      },
+    });
+
+    const { isActive: _isActive, _count, ...publicFields } = user;
+    return {
+      ...publicFields,
+      stats: {
+        gamesOrganized: _count.organizedRuns,
+        gamesJoined: _count.participations,
+        reviews: _count.reviews,
+      },
+      upcomingRuns,
+    };
   }
 
   async uploadAvatar(userId: string, buffer: Buffer, mimeType?: string) {
