@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { randomUUID } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 
 const SESSION_TTL_MS = 5 * 60 * 1000;
@@ -102,17 +102,22 @@ export class TelegramBotService implements OnModuleInit {
   }
 
   private async handleStart(chatId: string, token?: string) {
+    const frontendUrl = this.config.get<string>('FRONTEND_URL', 'https://ubc-web-azure.vercel.app');
+
     if (!token) {
       await this.sendMessage(
         chatId,
-        'Привет! Чтобы войти на сайт UBC, открой эту ссылку с сайта ubc-web-azure.vercel.app.',
+        `Привет! 🏀 Это бот входа на сайт UBC — Uzbek Basketball Culture.\n\nЧтобы войти:\n1. Открой ${frontendUrl}/auth/login\n2. Нажми «Войти через Telegram»\n3. Вернись сюда и нажми кнопку «Поделиться контактом»`,
       );
       return;
     }
 
     const session = await this.prisma.telegramLoginSession.findUnique({ where: { token } });
     if (!session || session.expiresAt < new Date()) {
-      await this.sendMessage(chatId, 'Ссылка для входа устарела. Вернись на сайт и попробуй снова.');
+      await this.sendMessage(
+        chatId,
+        `⏰ Ссылка для входа устарела (она действует 5 минут).\n\nВернись на ${frontendUrl}/auth/login и нажми «Войти через Telegram» ещё раз.`,
+      );
       return;
     }
 
@@ -123,7 +128,7 @@ export class TelegramBotService implements OnModuleInit {
 
     await this.sendMessage(
       chatId,
-      'Нажми кнопку ниже, чтобы поделиться контактом и войти на сайт UBC.',
+      'Остался один шаг! 👇\n\nНажми кнопку «📱 Поделиться контактом» внизу экрана — и вход на сайт выполнится автоматически.\n\nМы получим только твоё имя и номер телефона. Никаких сообщений и рассылок.',
       {
         keyboard: [[{ text: '📱 Поделиться контактом', request_contact: true }]],
         resize_keyboard: true,
@@ -142,7 +147,12 @@ export class TelegramBotService implements OnModuleInit {
     });
 
     if (!session || session.expiresAt < new Date()) {
-      await this.sendMessage(chatId, 'Сессия входа устарела. Вернись на сайт и попробуй снова.');
+      const frontendUrl = this.config.get<string>('FRONTEND_URL', 'https://ubc-web-azure.vercel.app');
+      await this.sendMessage(
+        chatId,
+        `⏰ Сессия входа устарела.\n\nВернись на ${frontendUrl}/auth/login и нажми «Войти через Telegram» ещё раз.`,
+        { remove_keyboard: true },
+      );
       return;
     }
 
@@ -165,7 +175,7 @@ export class TelegramBotService implements OnModuleInit {
 
     await this.sendMessage(
       chatId,
-      'Готово! Возвращайся на сайт — вход выполнится автоматически.',
+      '✅ Готово! Вход выполнен.\n\nВозвращайся на вкладку сайта — через пару секунд ты будешь в своём аккаунте.',
       { remove_keyboard: true },
     );
   }
@@ -182,8 +192,19 @@ export class TelegramBotService implements OnModuleInit {
     }
   }
 
+  /**
+   * Telegram only accepts secret tokens of [A-Za-z0-9_-]{1,256}. Deriving a
+   * sha256 hex from the env value guarantees a valid token no matter what
+   * characters the platform's secret generator produced.
+   */
+  private get webhookSecret(): string | undefined {
+    const raw = this.config.get<string>('TELEGRAM_WEBHOOK_SECRET');
+    if (!raw) return undefined;
+    return createHash('sha256').update(raw).digest('hex');
+  }
+
   verifyWebhookSecret(headerSecret: string | undefined) {
-    const expected = this.config.get<string>('TELEGRAM_WEBHOOK_SECRET');
+    const expected = this.webhookSecret;
     if (!expected) return true;
     return headerSecret === expected;
   }
@@ -201,7 +222,7 @@ export class TelegramBotService implements OnModuleInit {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           url: `${publicUrl}/api/v1/telegram/webhook`,
-          secret_token: this.config.get<string>('TELEGRAM_WEBHOOK_SECRET'),
+          secret_token: this.webhookSecret,
           allowed_updates: ['message'],
         }),
       });
@@ -209,7 +230,7 @@ export class TelegramBotService implements OnModuleInit {
       if (!data.ok) {
         this.logger.error(`Telegram setWebhook failed: ${data.description}`);
       } else {
-        this.logger.log('Telegram webhook registered');
+        this.logger.log(`Telegram webhook registered: ${publicUrl}/api/v1/telegram/webhook`);
       }
     } catch (err) {
       this.logger.error(`Telegram setWebhook error: ${err}`);
