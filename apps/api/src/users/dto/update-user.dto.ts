@@ -1,6 +1,7 @@
 import {
   IsString,
   IsOptional,
+  IsBoolean,
   MinLength,
   MaxLength,
   Matches,
@@ -50,4 +51,10 @@ export class SetRoleDto {
   @ApiProperty({ enum: UserRole })
   @IsEnum(UserRole)
   role!: UserRole;
+}
+
+export class SetActiveDto {
+  @ApiProperty()
+  @IsBoolean()
+  isActive!: boolean;
 }

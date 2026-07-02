@@ -120,7 +120,10 @@ export class NewsService {
     });
     if (!article) throw new NotFoundException('Статья не найдена');
 
-    const canDelete = article.authorId === userId || userRole === UserRole.ADMIN;
+    const canDelete =
+      article.authorId === userId ||
+      userRole === UserRole.ADMIN ||
+      userRole === UserRole.MODERATOR;
     if (!canDelete) throw new ForbiddenException();
 
     const keysToDelete = [

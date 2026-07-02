@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Users, X } from 'lucide-react';
+import Image from 'next/image';
+import { Plus, Pencil, Trash2, Users, X, ImagePlus, Loader2 } from 'lucide-react';
 import {
   useEvents,
   useCreateEvent,
   useUpdateEvent,
   useDeleteEvent,
+  useUploadEventCover,
   useEventRegistrationsAdmin,
   type EventListItem,
   type EventStatus,
@@ -45,19 +47,30 @@ function toDatetimeLocal(iso: string) {
 
 function EventForm({
   initial,
+  eventId,
   onCancel,
   onSubmit,
   pending,
 }: {
   initial: EventFormValues;
+  eventId?: string;
   onCancel: () => void;
   onSubmit: (values: EventFormValues) => void;
   pending: boolean;
 }) {
   const [values, setValues] = useState(initial);
+  const uploadCover = useUploadEventCover();
 
   const set = <K extends keyof EventFormValues>(key: K, v: EventFormValues[K]) =>
     setValues((prev) => ({ ...prev, [key]: v }));
+
+  const handleCoverFile = (file: File | undefined) => {
+    if (!file || !eventId) return;
+    uploadCover.mutate(
+      { id: eventId, file },
+      { onSuccess: (updated: any) => set('coverUrl', updated.coverUrl ?? '') },
+    );
+  };
 
   return (
     <form
@@ -103,9 +116,28 @@ function EventForm({
             className="w-full mt-1 px-3 py-2 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:border-primary/50" />
         </div>
         <div>
-          <label className="text-xs text-muted-foreground">Обложка (URL)</label>
-          <input value={values.coverUrl ?? ''} onChange={(e) => set('coverUrl', e.target.value)}
-            className="w-full mt-1 px-3 py-2 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:border-primary/50" />
+          <label className="text-xs text-muted-foreground">Обложка</label>
+          <div className="flex items-center gap-2 mt-1">
+            <input value={values.coverUrl ?? ''} onChange={(e) => set('coverUrl', e.target.value)}
+              placeholder="URL или загрузи файл"
+              className="flex-1 px-3 py-2 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:border-primary/50" />
+            {eventId && (
+              <label className="p-2 rounded-lg border border-border hover:bg-secondary transition-colors cursor-pointer shrink-0" title="Загрузить файл">
+                {uploadCover.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                ) : (
+                  <ImagePlus className="w-4 h-4 text-muted-foreground" />
+                )}
+                <input type="file" accept="image/*" className="hidden" disabled={uploadCover.isPending}
+                  onChange={(e) => { handleCoverFile(e.target.files?.[0]); e.target.value = ''; }} />
+              </label>
+            )}
+          </div>
+          {values.coverUrl && (
+            <div className="relative w-full h-24 mt-2 rounded-lg overflow-hidden border border-border">
+              <Image src={values.coverUrl} alt="" fill className="object-cover" unoptimized />
+            </div>
+          )}
         </div>
         <div>
           <label className="text-xs text-muted-foreground">Лимит участников</label>
@@ -228,6 +260,7 @@ export default function AdminEventsPage() {
 
       {editingEvent && (
         <EventForm
+          eventId={editingEvent.id}
           initial={{
             title: editingEvent.title,
             slug: editingEvent.slug,

@@ -61,6 +61,37 @@ export function usePublishMedia() {
   });
 }
 
+export function useUnpublishMedia() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.post(`/media/${id}/unpublish`).then((r) => r.data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: mediaKeys.all }),
+  });
+}
+
+export function useUpdateMedia() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...dto }: Partial<MediaFormValues> & { id: string }) =>
+      api.patch(`/media/${id}`, dto).then((r) => r.data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: mediaKeys.all }),
+  });
+}
+
+export function useUploadMediaPhoto() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      return api
+        .post(`/media/${id}/photo`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+        .then((r) => r.data);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: mediaKeys.all }),
+  });
+}
+
 export function useDeleteMedia() {
   const queryClient = useQueryClient();
   return useMutation({

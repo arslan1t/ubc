@@ -9,7 +9,7 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { UsersService } from './users.service';
-import { UpdateUserDto, SetRoleDto } from './dto/update-user.dto';
+import { UpdateUserDto, SetRoleDto, SetActiveDto } from './dto/update-user.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 
@@ -71,5 +71,16 @@ export class UsersController {
     @CurrentUser() actor: { id: string; role: UserRole },
   ) {
     return this.usersService.setRole(actor, targetId, dto.role);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Patch(':id/active')
+  @ApiOperation({ summary: 'Заблокировать/разблокировать пользователя (admin/super admin)' })
+  setActive(
+    @Param('id') targetId: string,
+    @Body() dto: SetActiveDto,
+    @CurrentUser() actor: { id: string; role: UserRole },
+  ) {
+    return this.usersService.setActive(actor, targetId, dto.isActive);
   }
 }

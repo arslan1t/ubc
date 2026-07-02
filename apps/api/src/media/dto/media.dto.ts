@@ -37,6 +37,35 @@ export class CreateMediaDto {
   isPublished?: boolean;
 }
 
+export class UpdateMediaDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @MinLength(3)
+  @IsOptional()
+  title?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @ApiPropertyOptional({ enum: MediaType })
+  @IsEnum(MediaType)
+  @IsOptional()
+  type?: MediaType;
+
+  @ApiPropertyOptional()
+  @IsUrl()
+  @IsOptional()
+  youtubeUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsBoolean()
+  @IsOptional()
+  @Type(() => Boolean)
+  isPublished?: boolean;
+}
+
 export class MediaFiltersDto {
   @ApiPropertyOptional({ enum: MediaType })
   @IsEnum(MediaType)
