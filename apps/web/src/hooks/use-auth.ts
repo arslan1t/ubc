@@ -23,6 +23,24 @@ export function useMe() {
   });
 }
 
+export function useUploadAvatar() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      return api
+        .post('/users/me/avatar', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+        .then((r) => r.data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['me'] });
+      toast.success('Фото профиля обновлено');
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Не удалось загрузить фото'),
+  });
+}
+
 export function useLogin() {
   const { setTokens } = useAuthStore();
   const queryClient = useQueryClient();

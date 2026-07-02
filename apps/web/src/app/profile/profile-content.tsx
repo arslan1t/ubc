@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
@@ -8,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { useAuth, useMe, useLogout } from '@/hooks/use-auth';
+import { useAuth, useMe, useLogout, useUploadAvatar } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,7 +21,7 @@ import { getInitials, formatDate } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import {
   LogOut, Edit3, Trophy, MapPin, Newspaper,
-  Zap, Star, Award, ChevronRight,
+  Zap, Star, Award, ChevronRight, Camera, Loader2,
 } from 'lucide-react';
 
 const ROLE_META: Record<string, { label: string; color: string; bg: string }> = {
@@ -35,6 +36,7 @@ const schema = z.object({
   lastName: z.string().min(2),
   phone: z.string().regex(/^\+998[0-9]{9}$/).optional().or(z.literal('')),
   telegramUsername: z.string().optional(),
+  instagramUsername: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -77,8 +79,14 @@ export function ProfileContent() {
       lastName: user?.lastName ?? '',
       phone: user?.phone ?? '',
       telegramUsername: user?.telegramUsername ?? '',
+      instagramUsername: user?.instagramUsername ?? '',
     },
   });
+
+  const uploadAvatar = useUploadAvatar();
+  const handleAvatarChange = (file: File | undefined) => {
+    if (file) uploadAvatar.mutate(file);
+  };
 
   if (!isAuthenticated) {
     return (
@@ -128,11 +136,29 @@ export function ProfileContent() {
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             {/* Avatar */}
             <div className="relative shrink-0">
-              <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 border-2 border-primary/30 flex items-center justify-center">
-                <span className="font-display font-black text-2xl md:text-3xl text-primary">
-                  {user?.firstName && user?.lastName ? getInitials(user.firstName, user.lastName) : '?'}
-                </span>
-              </div>
+              <label className="group relative block w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-primary/30 to-primary/10 border-2 border-primary/30 flex items-center justify-center cursor-pointer">
+                {user?.avatarUrl ? (
+                  <Image src={user.avatarUrl} alt="" fill className="object-cover" />
+                ) : (
+                  <span className="font-display font-black text-2xl md:text-3xl text-primary">
+                    {user?.firstName && user?.lastName ? getInitials(user.firstName, user.lastName) : '?'}
+                  </span>
+                )}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {uploadAvatar.isPending ? (
+                    <Loader2 className="w-6 h-6 text-white animate-spin" />
+                  ) : (
+                    <Camera className="w-6 h-6 text-white" />
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploadAvatar.isPending}
+                  onChange={(e) => { handleAvatarChange(e.target.files?.[0]); e.target.value = ''; }}
+                />
+              </label>
               {/* Rep indicator */}
               {user?.reputation !== undefined && user.reputation > 0 && (
                 <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-[0_0_12px_hsl(43_85%_53%/0.5)]">
@@ -246,6 +272,10 @@ export function ProfileContent() {
                   <Label>Telegram</Label>
                   <Input {...register('telegramUsername')} placeholder="username" className="rounded-xl" />
                 </div>
+                <div className="space-y-2">
+                  <Label>Instagram</Label>
+                  <Input {...register('instagramUsername')} placeholder="username" className="rounded-xl" />
+                </div>
                 <div className="flex gap-3">
                   <Button type="submit" variant="gold" disabled={isPending} className="rounded-xl">
                     {isPending ? 'Сохраняем...' : 'Сохранить'}
@@ -266,6 +296,7 @@ export function ProfileContent() {
                     { label: 'Email', value: user?.email ?? '—' },
                     { label: 'Телефон', value: user?.phone ?? '—' },
                     { label: 'Telegram', value: user?.telegramUsername ? `@${user.telegramUsername}` : '—' },
+                    { label: 'Instagram', value: user?.instagramUsername ? `@${user.instagramUsername}` : '—' },
                     { label: 'На платформе с', value: user?.createdAt ? formatDate(user.createdAt) : '—' },
                   ].map(({ label, value }) => (
                     <div key={label} className="flex justify-between items-center py-3 text-sm">

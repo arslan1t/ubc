@@ -15,6 +15,11 @@ const TYPE_META: Record<SubmissionType, { label: string; icon: typeof MapPin }> 
   RESULT: { label: 'Результат', icon: Trophy },
 };
 
+const RESUBMIT_PATH: Partial<Record<SubmissionType, string>> = {
+  COURT: '/courts/suggest',
+  NEWS: '/news/suggest',
+};
+
 const STATUS_META: Record<SubmissionStatus, { label: string; cls: string }> = {
   PENDING: { label: 'На модерации', cls: 'text-amber-400 bg-amber-400/10' },
   APPROVED: { label: 'Одобрено', cls: 'text-emerald-400 bg-emerald-400/10' },
@@ -80,6 +85,14 @@ export function MySubmissions() {
               </div>
               {s.reviewNote && (
                 <p className="text-xs text-muted-foreground mt-1 italic">«{s.reviewNote}»</p>
+              )}
+              {s.status === 'CHANGES_REQUESTED' && RESUBMIT_PATH[s.type] && (
+                <Link
+                  href={`${RESUBMIT_PATH[s.type]}?resubmit=${s.id}`}
+                  className="inline-block text-xs font-medium text-sky-400 hover:underline mt-1.5"
+                >
+                  Доработать и отправить снова →
+                </Link>
               )}
             </div>
             <span className={cn('shrink-0 rounded-full px-2.5 py-1 text-xs font-medium', status.cls)}>

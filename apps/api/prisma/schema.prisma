@@ -108,6 +108,7 @@ enum EventStatus {
 enum NotificationType {
   SUBMISSION_APPROVED
   SUBMISSION_REJECTED
+  SUBMISSION_CHANGES_REQUESTED
   EVENT_REGISTRATION
   EVENT_UPDATE
   PICKUP_GAME_UPDATE
@@ -127,6 +128,7 @@ model User {
   phone            String?      @unique
   telegramId       String?      @unique
   telegramUsername String?
+  instagramUsername String?
   googleId         String?      @unique
   avatarUrl        String?
   avatarKey        String?

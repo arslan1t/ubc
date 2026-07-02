@@ -1,11 +1,15 @@
 import {
   Controller,
   Get,
+  Post,
   Patch,
   Body,
   Param,
   Query,
+  Req,
+  BadRequestException,
 } from '@nestjs/common';
+import type { FastifyRequest } from 'fastify';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { UsersService } from './users.service';
@@ -29,6 +33,18 @@ export class UsersController {
   @ApiOperation({ summary: 'Обновить профиль' })
   updateMe(@CurrentUser('id') userId: string, @Body() dto: UpdateUserDto) {
     return this.usersService.updateProfile(userId, dto);
+  }
+
+  @Post('me/avatar')
+  @ApiOperation({ summary: 'Загрузить фото профиля' })
+  async uploadAvatar(@CurrentUser('id') userId: string, @Req() req: FastifyRequest) {
+    const file = await req.file();
+    if (!file) throw new BadRequestException('Файл не найден в запросе');
+    if (!file.mimetype?.startsWith('image/')) {
+      throw new BadRequestException('Допускаются только изображения');
+    }
+    const buffer = await file.toBuffer();
+    return this.usersService.uploadAvatar(userId, buffer, file.mimetype);
   }
 
   @Get('me/open-runs')

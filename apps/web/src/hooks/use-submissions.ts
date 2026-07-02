@@ -45,3 +45,12 @@ export function useMySubmissions() {
     queryFn: async () => (await api.get('/submissions/mine')).data,
   });
 }
+
+export function useResubmit() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Record<string, any> }) =>
+      api.patch(`/submissions/${id}/resubmit`, { payload }).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['submissions', 'mine'] }),
+  });
+}

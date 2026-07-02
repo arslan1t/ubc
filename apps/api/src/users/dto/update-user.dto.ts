@@ -36,6 +36,12 @@ export class UpdateUserDto {
 
   @ApiPropertyOptional()
   @IsString()
+  @MaxLength(30)
+  @IsOptional()
+  instagramUsername?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
   @MaxLength(280)
   @IsOptional()
   bio?: string;
