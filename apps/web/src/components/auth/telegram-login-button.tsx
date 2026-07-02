@@ -25,6 +25,7 @@ export function TelegramLoginButton() {
         <ol className="space-y-1.5 text-xs text-muted-foreground list-decimal list-inside mb-4">
           <li>Открой чат с ботом (кнопка ниже)</li>
           <li>Нажми в боте «📱 Поделиться контактом»</li>
+          <li>Напиши в ответ своё имя и фамилию</li>
           <li>Вернись сюда — вход выполнится сам</li>
         </ol>
 

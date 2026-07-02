@@ -7,10 +7,10 @@ import {
   useApproveSubmission,
   useRejectSubmission,
   useRequestChanges,
-  type Submission,
   type SubmissionType,
 } from '@/hooks/use-moderation';
 import { formatRelativeDate, getInitials, cn } from '@/lib/utils';
+import { payloadSummary } from '@/lib/submission-summary';
 
 const STATUS_TABS = [
   { key: 'PENDING', label: 'Ожидают' },
@@ -37,20 +37,6 @@ const TYPE_META: Record<SubmissionType, { label: string; icon: typeof MapPin; co
   EVENT: { label: 'Событие', icon: Calendar, color: 'text-purple-400 bg-purple-400/10' },
   RESULT: { label: 'Результат', icon: Trophy, color: 'text-amber-400 bg-amber-400/10' },
 };
-
-function payloadSummary(s: Submission): { title: string; lines: string[] } {
-  const p = s.payload ?? {};
-  switch (s.type) {
-    case 'COURT':
-      return { title: p.name ?? 'Без названия', lines: [p.address, p.type, p.isFree ? 'Бесплатно' : 'Платный'].filter(Boolean) };
-    case 'NEWS':
-      return { title: p.title ?? 'Без заголовка', lines: [p.category, p.excerpt].filter(Boolean) };
-    case 'REPORT':
-      return { title: 'Жалоба', lines: [p.reason, p.message].filter(Boolean) };
-    default:
-      return { title: TYPE_META[s.type].label, lines: [JSON.stringify(p).slice(0, 120)] };
-  }
-}
 
 export default function ModerationPage() {
   const [status, setStatus] = useState('PENDING');

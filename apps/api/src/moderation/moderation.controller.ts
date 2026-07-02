@@ -31,12 +31,14 @@ export class ModerationController {
   list(
     @Query('status') status?: SubmissionStatus,
     @Query('type') type?: SubmissionType,
+    @Query('submittedById') submittedById?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
     return this.moderation.list({
       status,
       type,
+      submittedById,
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
     });

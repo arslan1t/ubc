@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash, randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { StorageService } from '../storage/storage.service';
 
 const SESSION_TTL_MS = 5 * 60 * 1000;
 
@@ -21,6 +22,7 @@ export class TelegramBotService implements OnModuleInit {
   constructor(
     private prisma: PrismaService,
     private config: ConfigService,
+    private storage: StorageService,
   ) {}
 
   async onModuleInit() {
@@ -97,7 +99,12 @@ export class TelegramBotService implements OnModuleInit {
     }
 
     if (message.contact) {
-      await this.handleContact(chatId, message.contact);
+      await this.handleContact(chatId, message.contact, message.from?.username);
+      return;
+    }
+
+    if (typeof message.text === 'string') {
+      await this.handleNameReply(chatId, message.text);
     }
   }
 
@@ -140,6 +147,7 @@ export class TelegramBotService implements OnModuleInit {
   private async handleContact(
     chatId: string,
     contact: { phone_number?: string; first_name?: string; last_name?: string; user_id?: number },
+    fromUsername?: string,
   ) {
     const session = await this.prisma.telegramLoginSession.findFirst({
       where: { chatId, status: 'PENDING' },
@@ -162,22 +170,79 @@ export class TelegramBotService implements OnModuleInit {
         : `+${contact.phone_number}`
       : null;
 
+    const telegramId = contact.user_id ? String(contact.user_id) : chatId;
+    const photoUrl = await this.fetchProfilePhoto(telegramId);
+
+    // Contact number confirmed, but NOT marking CONFIRMED yet — we still want
+    // the person to type their real name (their Telegram first_name/last_name
+    // can be a nickname or missing entirely) before the profile is complete.
     await this.prisma.telegramLoginSession.update({
       where: { id: session.id },
-      data: {
-        status: 'CONFIRMED',
-        telegramId: contact.user_id ? String(contact.user_id) : chatId,
-        phone,
-        firstName: contact.first_name ?? null,
-        lastName: contact.last_name ?? null,
-      },
+      data: { phone, telegramId, username: fromUsername ?? null, photoUrl },
     });
 
     await this.sendMessage(
       chatId,
-      '✅ Готово! Вход выполнен.\n\nВозвращайся на вкладку сайта — через пару секунд ты будешь в своём аккаунте.',
+      'Отлично! 📱 Номер получен.\n\nОсталось написать своё имя и фамилию (например: Азиз Каримов) — так тебя будут видеть другие игроки на сайте.',
       { remove_keyboard: true },
     );
+  }
+
+  private async handleNameReply(chatId: string, text: string) {
+    const session = await this.prisma.telegramLoginSession.findFirst({
+      where: { chatId, status: 'PENDING', phone: { not: null } },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!session || session.expiresAt < new Date()) return;
+
+    const words = text.trim().split(/\s+/).filter(Boolean);
+    if (words.length === 0) {
+      await this.sendMessage(chatId, 'Напиши, пожалуйста, имя и фамилию текстом.');
+      return;
+    }
+
+    const firstName = words[0];
+    const lastName = words.slice(1).join(' ') || null;
+
+    await this.prisma.telegramLoginSession.update({
+      where: { id: session.id },
+      data: { status: 'CONFIRMED', firstName, lastName },
+    });
+
+    await this.sendMessage(
+      chatId,
+      `✅ Готово, ${firstName}! Профиль создан, вход выполнен.\n\nВозвращайся на вкладку сайта — через пару секунд ты будешь в своём аккаунте.`,
+    );
+  }
+
+  /** Best-effort — returns null on any failure, never blocks login. */
+  private async fetchProfilePhoto(telegramId: string): Promise<string | null> {
+    try {
+      const photosRes = await fetch(
+        this.apiUrl(`getUserProfilePhotos?user_id=${telegramId}&limit=1`),
+      );
+      const photosData = (await photosRes.json()) as {
+        ok: boolean;
+        result?: { photos: { file_id: string }[][] };
+      };
+      const fileId = photosData.result?.photos?.[0]?.at(-1)?.file_id;
+      if (!fileId) return null;
+
+      const fileRes = await fetch(this.apiUrl(`getFile?file_id=${fileId}`));
+      const fileData = (await fileRes.json()) as { ok: boolean; result?: { file_path: string } };
+      const filePath = fileData.result?.file_path;
+      if (!filePath) return null;
+
+      const imgRes = await fetch(`https://api.telegram.org/file/bot${this.botToken}/${filePath}`);
+      if (!imgRes.ok) return null;
+      const buffer = Buffer.from(await imgRes.arrayBuffer());
+
+      const uploaded = await this.storage.uploadAvatar(buffer);
+      return uploaded.url;
+    } catch (err) {
+      this.logger.warn(`Failed to fetch Telegram profile photo: ${err}`);
+      return null;
+    }
   }
 
   private async sendMessage(chatId: string, text: string, reply_markup?: unknown) {
