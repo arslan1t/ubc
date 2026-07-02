@@ -20,6 +20,7 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://ubc-web-azure.vercel.app'),
   title: {
     default: 'UBC — Uzbek Basketball Culture',
     template: '%s | UBC',
@@ -31,9 +32,22 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'ru_RU',
     siteName: 'UBC',
+    title: 'UBC — Uzbek Basketball Culture',
+    description:
+      'Узбекистанская баскетбольная культура. Находи игры, создавай Open Run, открывай корты.',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'UBC — Uzbek Basketball Culture' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'UBC — Uzbek Basketball Culture',
+    description: 'Баскетбольное сообщество Узбекистана: игры, корты, турниры.',
+    images: ['/og-image.jpg'],
   },
   robots: { index: true, follow: true },
-  icons: { icon: '/favicon.ico' },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-icon.png',
+  },
 };
 
 export default function RootLayout({

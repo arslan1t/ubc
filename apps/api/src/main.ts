@@ -7,14 +7,25 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import multipart from '@fastify/multipart';
+import helmet from '@fastify/helmet';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: process.env.NODE_ENV !== 'production' }),
+    new FastifyAdapter({
+      logger: process.env.NODE_ENV !== 'production',
+      // Behind Render's proxy: without this every client shares the proxy IP
+      // and per-IP rate limiting throttles all users together.
+      trustProxy: true,
+    }),
   );
+
+  await app.register(helmet, {
+    // JSON-only API — CSP is for HTML pages and would only add noise here.
+    contentSecurityPolicy: false,
+  });
 
   // Image uploads (courts / news galleries) — 8MB cap, single file per request.
   await app.register(multipart, {

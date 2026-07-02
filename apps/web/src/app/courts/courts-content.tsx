@@ -8,13 +8,14 @@ import { CourtCard } from '@/components/courts/court-card';
 import { CourtFilters } from '@/components/courts/court-filters';
 import { YandexMap, MAP_AVAILABLE } from '@/components/courts/yandex-map';
 import { Skeleton } from '@/components/ui/skeleton';
+import { QueryError } from '@/components/ui/query-error';
 
 export function CourtsPageContent() {
   const searchParams = useSearchParams();
   const filters: Record<string, any> = {};
   searchParams.forEach((value, key) => { filters[key] = value; });
 
-  const { data, isLoading } = useCourts(filters);
+  const { data, isLoading, isError, refetch } = useCourts(filters);
   const courts = data?.data ?? [];
 
   return (
@@ -70,6 +71,8 @@ export function CourtsPageContent() {
               <Skeleton key={i} className="aspect-video rounded-2xl" />
             ))}
           </div>
+        ) : isError ? (
+          <QueryError onRetry={() => refetch()} />
         ) : courts.length ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
