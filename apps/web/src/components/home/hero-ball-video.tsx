@@ -8,7 +8,8 @@ export function HeroBallVideo() {
       loop
       playsInline
       poster="/hero-poster.jpg"
-      className="absolute inset-0 w-full h-full object-cover object-center"
+      className="absolute inset-0 w-full h-full object-cover"
+      style={{ objectPosition: '35% center' }}
     >
       <source src="/hero-video.mp4" type="video/mp4" />
     </video>
