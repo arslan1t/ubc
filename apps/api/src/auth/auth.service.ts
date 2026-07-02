@@ -40,7 +40,7 @@ export class AuthService {
         phone: dto.phone,
         provider: AuthProvider.LOCAL,
       },
-      select: { id: true, email: true, firstName: true, lastName: true, role: true },
+      select: { id: true, email: true, firstName: true, lastName: true, role: true, isActive: true },
     });
 
     return this.generateTokens(user);
@@ -207,7 +207,16 @@ export class AuthService {
     }
   }
 
-  private async generateTokens(user: { id: string; email?: string | null; role: string }) {
+  private async generateTokens(user: {
+    id: string;
+    email?: string | null;
+    role: string;
+    isActive: boolean;
+  }) {
+    if (!user.isActive) {
+      throw new UnauthorizedException('Аккаунт заблокирован');
+    }
+
     const payload = { sub: user.id, email: user.email, role: user.role };
 
     const [accessToken, refreshToken] = await Promise.all([

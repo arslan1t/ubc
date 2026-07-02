@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { UserRole, MediaType } from '@prisma/client';
-import { CreateMediaDto, MediaFiltersDto } from './dto/media.dto';
+import { CreateMediaDto, UpdateMediaDto, MediaFiltersDto } from './dto/media.dto';
 
 const MEDIA_INCLUDE = {
   author: { select: { id: true, firstName: true, lastName: true } },
@@ -86,7 +86,7 @@ export class MediaService {
     });
   }
 
-  async uploadPhoto(id: string, buffer: Buffer) {
+  async uploadPhoto(id: string, buffer: Buffer, mimeType?: string) {
     const item = await this.prisma.media.findUnique({ where: { id } });
     if (!item) throw new NotFoundException('Медиа не найдено');
     if (item.type !== MediaType.PHOTO) {
@@ -101,7 +101,7 @@ export class MediaService {
       ]);
     }
 
-    const result = await this.storage.uploadImage(buffer, `media/${id}`);
+    const result = await this.storage.uploadImage(buffer, `media/${id}`, mimeType);
     return this.prisma.media.update({
       where: { id },
       data: {
@@ -114,6 +114,26 @@ export class MediaService {
     });
   }
 
+  async update(id: string, dto: UpdateMediaDto) {
+    const item = await this.prisma.media.findUnique({ where: { id } });
+    if (!item) throw new NotFoundException('Медиа не найдено');
+
+    let youtubeThumbnail = item.youtubeThumbnail;
+    if (dto.youtubeUrl && dto.youtubeUrl !== item.youtubeUrl) {
+      const videoId = this.extractYoutubeId(dto.youtubeUrl);
+      youtubeThumbnail = videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null;
+    }
+
+    const publishedAt =
+      dto.isPublished && !item.isPublished ? new Date() : item.publishedAt;
+
+    return this.prisma.media.update({
+      where: { id },
+      data: { ...dto, youtubeThumbnail, publishedAt },
+      include: MEDIA_INCLUDE,
+    });
+  }
+
   async publish(id: string) {
     return this.prisma.media.update({
       where: { id },
@@ -122,11 +142,22 @@ export class MediaService {
     });
   }
 
+  async unpublish(id: string) {
+    return this.prisma.media.update({
+      where: { id },
+      data: { isPublished: false },
+      include: MEDIA_INCLUDE,
+    });
+  }
+
   async delete(id: string, userId: string, userRole: UserRole) {
     const item = await this.prisma.media.findUnique({ where: { id } });
     if (!item) throw new NotFoundException('Медиа не найдено');
 
-    const canDelete = item.authorId === userId || userRole === UserRole.ADMIN;
+    const canDelete =
+      item.authorId === userId ||
+      userRole === UserRole.ADMIN ||
+      userRole === UserRole.MODERATOR;
     if (!canDelete) throw new ForbiddenException();
 
     if (item.photoStorageKey) {

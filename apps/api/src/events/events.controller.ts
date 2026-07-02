@@ -6,9 +6,12 @@ import {
   Delete,
   Body,
   Param,
+  Req,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
+import type { FastifyRequest } from 'fastify';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { EventsService } from './events.service';
@@ -59,6 +62,43 @@ export class EventsController {
   @ApiOperation({ summary: 'Удалить турнир (admin)' })
   remove(@Param('id') id: string) {
     return this.eventsService.remove(id);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN)
+  @Post(':id/cover')
+  @ApiOperation({ summary: 'Загрузить обложку турнира (admin)' })
+  async uploadCover(@Param('id') id: string, @Req() req: FastifyRequest) {
+    const file = await req.file();
+    if (!file) throw new BadRequestException('Файл не найден в запросе');
+    if (!file.mimetype?.startsWith('image/')) {
+      throw new BadRequestException('Допускаются только изображения');
+    }
+    const buffer = await file.toBuffer();
+    return this.eventsService.uploadCover(id, buffer, file.mimetype);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN)
+  @Post(':id/gallery')
+  @ApiOperation({ summary: 'Добавить фото в галерею турнира (admin)' })
+  async addGalleryImage(@Param('id') id: string, @Req() req: FastifyRequest) {
+    const file = await req.file();
+    if (!file) throw new BadRequestException('Файл не найден в запросе');
+    if (!file.mimetype?.startsWith('image/')) {
+      throw new BadRequestException('Допускаются только изображения');
+    }
+    const buffer = await file.toBuffer();
+    return this.eventsService.addGalleryImage(id, buffer, file.mimetype);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN)
+  @Delete('gallery/:imageId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Удалить фото из галереи турнира (admin)' })
+  deleteGalleryImage(@Param('imageId') imageId: string) {
+    return this.eventsService.deleteGalleryImage(imageId);
   }
 
   @ApiBearerAuth()

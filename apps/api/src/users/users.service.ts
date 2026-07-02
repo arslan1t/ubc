@@ -189,4 +189,32 @@ export class UsersService {
       select: USER_ADMIN_SELECT,
     });
   }
+
+  /** Activate/deactivate a user — deactivated users are blocked at every login path. */
+  async setActive(
+    actor: { id: string; role: UserRole },
+    targetId: string,
+    isActive: boolean,
+  ) {
+    if (actor.id === targetId) {
+      throw new ForbiddenException('Нельзя заблокировать самого себя');
+    }
+
+    const target = await this.prisma.user.findUnique({
+      where: { id: targetId },
+      select: { id: true, role: true },
+    });
+    if (!target) throw new NotFoundException('Пользователь не найден');
+
+    const actorRank = ROLE_RANK[actor.role] ?? 0;
+    if ((ROLE_RANK[target.role] ?? 0) >= actorRank) {
+      throw new ForbiddenException('Недостаточно прав для изменения этого пользователя');
+    }
+
+    return this.prisma.user.update({
+      where: { id: targetId },
+      data: { isActive, ...(isActive ? {} : { refreshToken: null }) },
+      select: USER_ADMIN_SELECT,
+    });
+  }
 }

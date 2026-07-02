@@ -157,6 +157,21 @@ export function useDeleteEvent() {
   });
 }
 
+export function useUploadEventCover() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      return api
+        .post(`/events/${id}/cover`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+        .then((r) => r.data);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['events'] }),
+    onError: () => toast.error('Не удалось загрузить обложку'),
+  });
+}
+
 export function useEventRegistrationsAdmin(eventId: string) {
   return useQuery<EventRegistrationEntry[]>({
     queryKey: ['events', eventId, 'registrations'],

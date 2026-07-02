@@ -2,17 +2,21 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Body,
   Param,
   Query,
+  Req,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
+import type { FastifyRequest } from 'fastify';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { MediaService } from './media.service';
-import { CreateMediaDto, MediaFiltersDto } from './dto/media.dto';
+import { CreateMediaDto, UpdateMediaDto, MediaFiltersDto } from './dto/media.dto';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -54,10 +58,40 @@ export class MediaController {
 
   @ApiBearerAuth()
   @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Patch(':id')
+  @ApiOperation({ summary: 'Обновить медиа (moderator+)' })
+  update(@Param('id') id: string, @Body() dto: UpdateMediaDto) {
+    return this.mediaService.update(id, dto);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Post(':id/photo')
+  @ApiOperation({ summary: 'Загрузить фото (для типа PHOTO)' })
+  async uploadPhoto(@Param('id') id: string, @Req() req: FastifyRequest) {
+    const file = await req.file();
+    if (!file) throw new BadRequestException('Файл не найден в запросе');
+    if (!file.mimetype?.startsWith('image/')) {
+      throw new BadRequestException('Допускаются только изображения');
+    }
+    const buffer = await file.toBuffer();
+    return this.mediaService.uploadPhoto(id, buffer, file.mimetype);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
   @Post(':id/publish')
   @ApiOperation({ summary: 'Опубликовать' })
   publish(@Param('id') id: string) {
     return this.mediaService.publish(id);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Post(':id/unpublish')
+  @ApiOperation({ summary: 'Снять с публикации' })
+  unpublish(@Param('id') id: string) {
+    return this.mediaService.unpublish(id);
   }
 
   @ApiBearerAuth()
