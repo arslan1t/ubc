@@ -83,6 +83,7 @@ export function useTelegramBotLogin() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
+  const [deepLink, setDeepLink] = useState<string | null>(null);
   const [phase, setPhase] = useState<TelegramBotLoginPhase>('idle');
   const handledRef = useRef(false);
 
@@ -96,7 +97,10 @@ export function useTelegramBotLogin() {
     onSuccess: (data) => {
       handledRef.current = false;
       setToken(data.token);
+      setDeepLink(data.deepLink);
       setPhase('waiting');
+      // Best effort — popup blockers often kill window.open from async
+      // callbacks, so the UI always renders the deep link as a fallback.
       window.open(data.deepLink, '_blank', 'noopener,noreferrer');
     },
     onError: () => setPhase('error'),
@@ -136,7 +140,13 @@ export function useTelegramBotLogin() {
   return {
     start: () => startMutation.mutate(),
     phase,
-    reset: () => setPhase('idle'),
+    deepLink,
+    isStarting: startMutation.isPending,
+    reset: () => {
+      setPhase('idle');
+      setDeepLink(null);
+      setToken(null);
+    },
   };
 }
 
