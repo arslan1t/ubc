@@ -16,6 +16,7 @@ import { UsersService } from './users.service';
 import { UpdateUserDto, SetRoleDto, SetActiveDto } from './dto/update-user.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Public } from '../common/decorators/public.decorator';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -45,6 +46,13 @@ export class UsersController {
     }
     const buffer = await file.toBuffer();
     return this.usersService.uploadAvatar(userId, buffer, file.mimetype);
+  }
+
+  @Public()
+  @Get(':id/public')
+  @ApiOperation({ summary: 'Публичный профиль игрока' })
+  getPublicProfile(@Param('id') id: string) {
+    return this.usersService.getPublicProfile(id);
   }
 
   @Get('me/open-runs')

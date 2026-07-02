@@ -169,14 +169,14 @@ export function OpenRunDetailContent({ id }: { id: string }) {
               <div className="space-y-2">
                 {run.participants.map((p: any) => (
                   <div key={p.id} className="flex items-center justify-between rounded-lg border border-border bg-card/30 p-3">
-                    <div className="flex items-center gap-2">
+                    <Link href={`/players/${p.userId}`} className="flex items-center gap-2 group">
                       <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">
                         {getInitials(p.user.firstName, p.user.lastName)}
                       </div>
-                      <span className="text-sm font-medium">
+                      <span className="text-sm font-medium group-hover:text-primary transition-colors">
                         {p.user.firstName} {p.user.lastName}
                       </span>
-                    </div>
+                    </Link>
                     <Badge
                       variant={
                         p.status === 'APPROVED'
@@ -209,17 +209,17 @@ export function OpenRunDetailContent({ id }: { id: string }) {
           {/* Organizer */}
           <div className="rounded-xl border border-border bg-card p-4">
             <h3 className="font-display font-semibold text-sm mb-3">Организатор</h3>
-            <div className="flex items-center gap-3">
+            <Link href={`/players/${run.organizerId}`} className="flex items-center gap-3 group">
               <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
                 {getInitials(run.organizer.firstName, run.organizer.lastName)}
               </div>
               <div>
-                <div className="font-medium text-sm">
+                <div className="font-medium text-sm group-hover:text-primary transition-colors">
                   {run.organizer.firstName} {run.organizer.lastName}
                 </div>
                 <div className="text-xs text-muted-foreground">Организатор</div>
               </div>
-            </div>
+            </Link>
           </div>
 
           {/* Action */}

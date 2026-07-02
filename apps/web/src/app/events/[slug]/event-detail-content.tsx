@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Calendar, MapPin, Trophy, ScrollText, Users, ChevronDown,
@@ -219,7 +220,11 @@ export function EventDetailContent({ slug }: { slug: string }) {
             ) : (
               <div className="flex flex-wrap gap-2">
                 {event.registrations.map((r) => (
-                  <div key={r.id} className="flex items-center gap-2 rounded-full bg-white/5 pl-1 pr-3 py-1">
+                  <Link
+                    key={r.id}
+                    href={`/players/${r.userId}`}
+                    className="flex items-center gap-2 rounded-full bg-white/5 pl-1 pr-3 py-1 hover:bg-white/10 transition-colors"
+                  >
                     {r.user.avatarUrl ? (
                       <Image src={r.user.avatarUrl} alt={r.user.firstName} width={24} height={24} className="w-6 h-6 rounded-full object-cover" />
                     ) : (
@@ -228,7 +233,7 @@ export function EventDetailContent({ slug }: { slug: string }) {
                       </div>
                     )}
                     <span className="text-xs font-medium">{r.user.firstName}</span>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}

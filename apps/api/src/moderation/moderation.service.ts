@@ -110,7 +110,7 @@ export class ModerationService {
 
   async approve(reviewerId: string, id: string) {
     const sub = await this.getPending(id);
-    const resultId = await this.materialize(sub);
+    const { resultId, link } = await this.materialize(sub);
     const updated = await this.prisma.submission.update({
       where: { id },
       data: {
@@ -126,6 +126,8 @@ export class ModerationService {
       sub.submittedById,
       'SUBMISSION_APPROVED',
       `Заявка одобрена: ${TYPE_LABEL[sub.type]}`,
+      link ? 'Уже опубликовано — нажми, чтобы посмотреть.' : undefined,
+      link ?? '/profile',
     );
 
     return updated;
@@ -163,6 +165,7 @@ export class ModerationService {
         'SUBMISSION_REJECTED',
         `Заявка отклонена: ${TYPE_LABEL[sub.type]}`,
         note,
+        '/profile',
       );
     } else if (status === SubmissionStatus.CHANGES_REQUESTED) {
       await this.notifications.create(
@@ -170,6 +173,7 @@ export class ModerationService {
         'SUBMISSION_CHANGES_REQUESTED',
         `Нужно доработать: ${TYPE_LABEL[sub.type]}`,
         note ?? 'Модератор запросил изменения — открой «Мои заявки», чтобы посмотреть комментарий и отправить заявку снова.',
+        '/profile',
       );
     }
 
@@ -201,7 +205,9 @@ export class ModerationService {
   }
 
   /** Turn an approved submission into a real published entity. */
-  private async materialize(sub: Submission): Promise<string | null> {
+  private async materialize(
+    sub: Submission,
+  ): Promise<{ resultId: string | null; link: string | null }> {
     const p = (sub.payload ?? {}) as Record<string, any>;
 
     switch (sub.type) {
@@ -243,7 +249,7 @@ export class ModerationService {
           });
         }
 
-        return court.id;
+        return { resultId: court.id, link: `/courts/${court.slug}` };
       }
 
       case SubmissionType.NEWS: {
@@ -280,13 +286,13 @@ export class ModerationService {
           });
         }
 
-        return news.id;
+        return { resultId: news.id, link: `/news/${news.slug}` };
       }
 
       // EVENT / PHOTO / REPORT / RESULT are materialized once those domains
       // land (Phases 2/5). Approving them only records the decision for now.
       default:
-        return null;
+        return { resultId: null, link: null };
     }
   }
 
