@@ -79,11 +79,13 @@ export function EventDetailContent({ slug }: { slug: string }) {
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ aspectRatio: '21/9' }}>
         <Image
-          src={event.coverUrl ?? '/main.png'}
+          src={event.bannerUrl ?? event.coverUrl ?? '/main.png'}
           alt={event.title}
           fill
           className="object-cover"
           priority
+          quality={90}
+          sizes="100vw"
         />
         <div className="absolute inset-0 bg-black/55" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />

@@ -139,16 +139,24 @@ export class NewsService {
     await this.prisma.news.delete({ where: { id } });
   }
 
-  async uploadCover(id: string, buffer: Buffer, mimeType?: string) {
+  async uploadCover(
+    id: string,
+    buffer: Buffer,
+    mimeType?: string,
+    kind: 'cover' | 'banner' = 'cover',
+  ) {
     const article = await this.prisma.news.findUnique({ where: { id } });
     if (!article) throw new NotFoundException('Статья не найдена');
 
-    if (article.coverKey) await this.storage.deleteFile(article.coverKey);
+    if (kind === 'cover' && article.coverKey) await this.storage.deleteFile(article.coverKey);
 
-    const result = await this.storage.uploadImage(buffer, `news/${id}/cover`, mimeType);
+    const result = await this.storage.uploadImage(buffer, `news/${id}/${kind}`, mimeType);
     return this.prisma.news.update({
       where: { id },
-      data: { coverUrl: result.url, coverKey: result.key },
+      data:
+        kind === 'banner'
+          ? { bannerUrl: result.url }
+          : { coverUrl: result.url, coverKey: result.key },
     });
   }
 

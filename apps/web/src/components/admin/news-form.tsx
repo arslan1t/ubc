@@ -30,10 +30,12 @@ interface GalleryImage {
 function NewsPhotos({
   articleId,
   coverUrl,
+  bannerUrl,
   gallery,
 }: {
   articleId: string;
   coverUrl?: string | null;
+  bannerUrl?: string | null;
   gallery: GalleryImage[];
 }) {
   const { mutateAsync: uploadCover, isPending: coverUploading } = useUploadNewsCover();
@@ -41,12 +43,12 @@ function NewsPhotos({
   const { mutate: deleteGalleryImage } = useDeleteNewsGalleryImage();
   const [galleryUploading, setGalleryUploading] = useState(0);
 
-  const handleCoverChange = async (file: File | undefined) => {
+  const handleCoverChange = async (file: File | undefined, kind: 'cover' | 'banner' = 'cover') => {
     if (!file) return;
     try {
-      await uploadCover({ id: articleId, file });
+      await uploadCover({ id: articleId, file, kind });
     } catch {
-      toast.error('Не удалось загрузить обложку');
+      toast.error('Не удалось загрузить изображение');
     }
   };
 
@@ -74,7 +76,7 @@ function NewsPhotos({
   return (
     <div className="space-y-5">
       <div>
-        <Label className="text-sm font-medium">Обложка</Label>
+        <Label className="text-sm font-medium">Обложка (карточка в списке)</Label>
         <div className="mt-1.5 flex items-center gap-3">
           {coverUrl ? (
             <div className="relative w-28 h-20 rounded-lg overflow-hidden border border-border shrink-0">
@@ -95,6 +97,35 @@ function NewsPhotos({
               disabled={coverUploading}
               onChange={(e) => {
                 handleCoverChange(e.target.files?.[0]);
+                e.target.value = '';
+              }}
+            />
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <Label className="text-sm font-medium">Заглавное изображение (страница статьи)</Label>
+        <div className="mt-1.5 flex items-center gap-3">
+          {bannerUrl ? (
+            <div className="relative w-28 h-20 rounded-lg overflow-hidden border border-border shrink-0">
+              <Image src={bannerUrl} alt="" fill className="object-cover" />
+            </div>
+          ) : (
+            <div className="w-28 h-20 rounded-lg border border-dashed border-border flex items-center justify-center shrink-0 text-muted-foreground text-xs text-center px-1">
+              Пусто — берётся обложка
+            </div>
+          )}
+          <label className="flex items-center gap-2 rounded-lg border border-border bg-card/30 px-3 py-2 text-sm cursor-pointer hover:bg-secondary transition-colors">
+            {coverUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
+            {coverUploading ? 'Загружаем...' : bannerUrl ? 'Заменить' : 'Загрузить заглавное'}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={coverUploading}
+              onChange={(e) => {
+                handleCoverChange(e.target.files?.[0], 'banner');
                 e.target.value = '';
               }}
             />
@@ -261,6 +292,7 @@ export function NewsForm({ defaultValues, onSubmit, submitLabel = 'Сохран�
             <NewsPhotos
               articleId={defaultValues.id}
               coverUrl={defaultValues.coverUrl}
+              bannerUrl={(defaultValues as any).bannerUrl}
               gallery={defaultValues.gallery ?? []}
             />
           ) : (

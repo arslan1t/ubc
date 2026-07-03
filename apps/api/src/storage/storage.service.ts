@@ -99,25 +99,26 @@ export class StorageService {
     }
 
     // rotate() with no args auto-orients from EXIF — otherwise phone photos
-    // (especially HEIC) can land sideways. Cap the "original" at 1920px so a
+    // (especially HEIC) can land sideways. Cap the "original" at 2560px so a
     // 12+ MP phone photo doesn't ship a multi-megabyte file for web display.
     // Medium and thumbnail are CROPPED to fixed aspects (16:9 and 1:1) so every
     // card on the site shows content at the same scale no matter what users upload.
+    // 4:4:4 chroma keeps text/graphics on posters crisp; never upscale small files.
     const [original, medium, thumbnail] = await Promise.all([
       sharp(buffer)
         .rotate()
-        .resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality: 85, mozjpeg: true })
+        .resize(2560, 2560, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 90, mozjpeg: true, chromaSubsampling: '4:4:4' })
         .toBuffer(),
       sharp(buffer)
         .rotate()
-        .resize(1280, 720, { fit: 'cover', position: 'attention' })
-        .jpeg({ quality: 80, mozjpeg: true })
+        .resize(1280, 720, { fit: 'cover', position: 'attention', withoutEnlargement: false })
+        .jpeg({ quality: 85, mozjpeg: true, chromaSubsampling: '4:4:4' })
         .toBuffer(),
       sharp(buffer)
         .rotate()
         .resize(400, 400, { fit: 'cover', position: 'attention' })
-        .jpeg({ quality: 75, mozjpeg: true })
+        .jpeg({ quality: 80, mozjpeg: true })
         .toBuffer(),
     ]);
 

@@ -111,6 +111,7 @@ export function CourtDetailContent({ slug }: { slug: string }) {
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 35vw"
                 priority
+                quality={90}
               />
             </div>
             {court.images.slice(1, 3).map((img: any) => (

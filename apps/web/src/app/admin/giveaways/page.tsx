@@ -27,6 +27,7 @@ const EMPTY_FORM: GiveawayFormValues = {
   description: '',
   conditions: '',
   coverUrl: '',
+  bannerUrl: '',
 };
 
 const ENTRY_STATUS_META: Record<string, { label: string; cls: string }> = {
@@ -87,7 +88,7 @@ function GiveawayForm({
           className="w-full mt-1 px-3 py-2 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:border-primary/50" />
       </div>
       <div>
-        <label className="text-xs text-muted-foreground">Обложка</label>
+        <label className="text-xs text-muted-foreground">Обложка (карточка в списке)</label>
         <div className="flex items-center gap-2 mt-1">
           <input value={values.coverUrl ?? ''} onChange={(e) => set('coverUrl', e.target.value)}
             placeholder="URL или загрузи файл"
@@ -116,6 +117,39 @@ function GiveawayForm({
         {values.coverUrl && (
           <div className="relative w-full h-24 mt-2 rounded-lg overflow-hidden border border-border">
             <Image src={values.coverUrl} alt="" fill className="object-cover" unoptimized />
+          </div>
+        )}
+      </div>
+      <div>
+        <label className="text-xs text-muted-foreground">Заглавное изображение (страница розыгрыша)</label>
+        <div className="flex items-center gap-2 mt-1">
+          <input value={values.bannerUrl ?? ''} onChange={(e) => set('bannerUrl', e.target.value)}
+            placeholder="URL или загрузи файл; пусто — используется обложка"
+            className="flex-1 px-3 py-2 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:border-primary/50" />
+          {giveawayId && (
+            <label className="p-2 rounded-lg border border-border hover:bg-secondary transition-colors cursor-pointer shrink-0" title="Загрузить файл">
+              {uploadCover.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+              ) : (
+                <ImagePlus className="w-4 h-4 text-muted-foreground" />
+              )}
+              <input type="file" accept="image/*" className="hidden" disabled={uploadCover.isPending}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    uploadCover.mutate(
+                      { id: giveawayId, file, kind: 'banner' },
+                      { onSuccess: (updated: any) => set('bannerUrl', updated.bannerUrl ?? '') },
+                    );
+                  }
+                  e.target.value = '';
+                }} />
+            </label>
+          )}
+        </div>
+        {values.bannerUrl && (
+          <div className="relative w-full h-24 mt-2 rounded-lg overflow-hidden border border-border">
+            <Image src={values.bannerUrl} alt="" fill className="object-cover" unoptimized />
           </div>
         )}
       </div>
@@ -291,6 +325,7 @@ export default function AdminGiveawaysPage() {
             description: editing.description ?? '',
             conditions: editing.conditions ?? '',
             coverUrl: editing.coverUrl ?? '',
+            bannerUrl: editing.bannerUrl ?? '',
           }}
           pending={update.isPending}
           onCancel={() => setMode('none')}

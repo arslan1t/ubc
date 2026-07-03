@@ -1,5 +1,6 @@
 'use client';
 
+import { PageHero } from '@/components/shared/page-hero';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Plus, Search, X } from 'lucide-react';
@@ -57,30 +58,19 @@ export function NewsPageContent() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <section className="relative overflow-hidden border-b border-border/60">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,hsl(43_85%_53%/0.07)_0%,transparent_70%)]" />
-        <div className="absolute inset-0 bg-court-grid opacity-40" />
-        <div className="container-page relative py-12 md:py-16 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">Редакция</p>
-            <h1 className="font-display font-black text-4xl md:text-5xl leading-none mb-2">
-              <span style={{
-                background: 'linear-gradient(135deg, hsl(43 85% 65%), hsl(43 85% 45%))',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}>Новости</span>
-            </h1>
-            <p className="text-muted-foreground">Баскетбол Узбекистана в деталях</p>
-          </div>
+      <PageHero
+        eyebrow="Редакция"
+        goldTitle="Новости"
+        subtitle="Баскетбол Узбекистана в деталях"
+        action={
           <Link
             href="/news/suggest"
             className="shrink-0 inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_0_20px_hsl(43_85%_53%/0.3)]"
           >
             <Plus className="w-4 h-4" /> Предложить новость
           </Link>
-        </div>
-      </section>
+        }
+      />
 
       <div className="container-page py-8 space-y-8">
         {/* Category pills + search */}

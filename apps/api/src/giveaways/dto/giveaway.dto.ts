@@ -31,6 +31,11 @@ export class CreateGiveawayDto {
   @IsString()
   @IsOptional()
   coverUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Заглавное изображение страницы' })
+  @IsString()
+  @IsOptional()
+  bannerUrl?: string;
 }
 
 export class EnterGiveawayDto {
@@ -84,6 +89,11 @@ export class UpdateGiveawayDto {
   @IsString()
   @IsOptional()
   coverUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Заглавное изображение страницы' })
+  @IsString()
+  @IsOptional()
+  bannerUrl?: string;
 
   @ApiPropertyOptional({ enum: GiveawayStatus })
   @IsEnum(GiveawayStatus)

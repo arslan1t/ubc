@@ -418,14 +418,14 @@ export class EventsService implements OnModuleInit {
     await this.prisma.eventMatch.deleteMany({ where: { eventId } });
   }
 
-  async uploadCover(id: string, buffer: Buffer, mimeType?: string) {
+  async uploadCover(id: string, buffer: Buffer, mimeType?: string, kind: 'cover' | 'banner' = 'cover') {
     const event = await this.prisma.event.findUnique({ where: { id } });
     if (!event) throw new NotFoundException('Турнир не найден');
 
-    const result = await this.storage.uploadImage(buffer, `events/${id}/cover`, mimeType);
+    const result = await this.storage.uploadImage(buffer, `events/${id}/${kind}`, mimeType);
     return this.prisma.event.update({
       where: { id },
-      data: { coverUrl: result.url },
+      data: kind === 'banner' ? { bannerUrl: result.url } : { coverUrl: result.url },
     });
   }
 

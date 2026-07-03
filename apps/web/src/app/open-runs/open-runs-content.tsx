@@ -1,5 +1,6 @@
 'use client';
 
+import { PageHero } from '@/components/shared/page-hero';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus, SlidersHorizontal, Zap } from 'lucide-react';
@@ -42,33 +43,22 @@ export function OpenRunsPageContent() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <section className="relative overflow-hidden border-b border-border/60">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,hsl(43_85%_53%/0.08)_0%,transparent_70%)]" />
-        <div className="absolute inset-0 bg-court-grid opacity-40" />
-        <div className="container-page relative py-12 md:py-16 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">Игры</p>
-            <h1 className="font-display font-black text-4xl md:text-5xl leading-none mb-2">
-              Pickup
-              <span className="block" style={{
-                background: 'linear-gradient(135deg, hsl(43 85% 65%), hsl(43 85% 45%))',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}>Games</span>
-            </h1>
-            <p className="text-muted-foreground">Открытые игры — находи и записывайся</p>
-          </div>
-          {isAuthenticated && (
+      <PageHero
+        eyebrow="Игры"
+        title="Pickup"
+        goldTitle="Games"
+        subtitle="Открытые игры — находи и записывайся"
+        action={
+          isAuthenticated ? (
             <Button asChild variant="gold" className="shrink-0 rounded-2xl shadow-[0_0_20px_hsl(43_85%_53%/0.3)] hover:shadow-[0_0_35px_hsl(43_85%_53%/0.5)]">
               <Link href="/pickup-games/create">
                 <Plus className="w-4 h-4 mr-2" />
                 Создать игру
               </Link>
             </Button>
-          )}
-        </div>
-      </section>
+          ) : undefined
+        }
+      />
 
       <div className="container-page py-8">
         {/* Filters */}

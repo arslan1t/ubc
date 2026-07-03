@@ -104,10 +104,10 @@ export function useDeleteNews() {
 export function useUploadNewsCover() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, file }: { id: string; file: File }) => {
+    mutationFn: async ({ id, file, kind = 'cover' }: { id: string; file: File; kind?: 'cover' | 'banner' }) => {
       const fd = new FormData();
       fd.append('file', file);
-      const { data } = await api.post(`/news/${id}/cover`, fd, {
+      const { data } = await api.post(`/news/${id}/cover?kind=${kind}`, fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       return data;

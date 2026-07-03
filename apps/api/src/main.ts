@@ -39,9 +39,12 @@ async function bootstrap() {
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
       // Allow requests with no origin (curl, mobile, etc.)
       if (!origin) return callback(null, true);
-      // Allow localhost in dev + configured frontend URL + any vercel.app subdomain
+      // Allow localhost in dev + configured frontend URL + any vercel.app
+      // subdomain + the production domain (with and without www).
       const allowed =
         origin === frontendUrl ||
+        origin === 'https://ubculture.uz' ||
+        origin === 'https://www.ubculture.uz' ||
         origin.startsWith('http://localhost') ||
         origin.endsWith('.vercel.app');
       callback(null, allowed);

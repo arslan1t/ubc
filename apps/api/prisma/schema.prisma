@@ -327,8 +327,9 @@ model News {
   slug        String       @unique
   excerpt     String?
   content     String
-  coverUrl    String?
+  coverUrl    String? // карточка в списке
   coverKey    String?
+  bannerUrl   String? // заглавное изображение на странице статьи
   category    NewsCategory @default(NEWS)
   authorId    String
   author      User         @relation(fields: [authorId], references: [id])
@@ -445,7 +446,8 @@ model Event {
   address         String?
   latitude        Float?
   longitude       Float?
-  coverUrl        String?
+  coverUrl        String? // карточка в списке
+  bannerUrl       String? // заглавное изображение на странице турнира
   description     String?
   rules           String?
   prizePool       String?
@@ -540,7 +542,8 @@ model Giveaway {
   description String?
   conditions  String? // условия участия — что нужно сделать, чтобы попасть в пул
   prize       String
-  coverUrl    String?
+  coverUrl    String? // карточка в списке
+  bannerUrl   String? // заглавное изображение на странице розыгрыша
   status      GiveawayStatus @default(OPEN)
   winnerId    String?
   winner      User?          @relation("GiveawayWinner", fields: [winnerId], references: [id], onDelete: SetNull)

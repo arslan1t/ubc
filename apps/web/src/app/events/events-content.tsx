@@ -1,5 +1,6 @@
 'use client';
 
+import { PageHero } from '@/components/shared/page-hero';
 import Link from 'next/link';
 import { Calendar, MapPin, Users, Trophy } from 'lucide-react';
 import { useEvents } from '@/hooks/use-events';
@@ -18,33 +19,12 @@ export function EventsPageContent() {
 
   return (
     <div className="min-h-screen">
-      <section className="relative overflow-hidden border-b border-border/60">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,hsl(43_85%_53%/0.1)_0%,transparent_70%)]" />
-        <div className="absolute inset-0 bg-court-grid opacity-40" />
-
-        <div className="container-page relative py-16 md:py-20">
-          <div className="max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">Соревнования</p>
-            <h1 className="font-display font-black text-4xl md:text-6xl leading-none mb-4">
-              Ивенты
-              <span
-                className="block"
-                style={{
-                  background: 'linear-gradient(135deg, hsl(43 85% 65%), hsl(43 85% 45%))',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                и турниры
-              </span>
-            </h1>
-            <p className="text-muted-foreground text-lg max-w-lg">
-              Официальные турниры, уличные чемпионаты и баскетбольные ивенты Узбекистана.
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Соревнования"
+        title="Ивенты"
+        goldTitle="и турниры"
+        subtitle="Официальные турниры, уличные чемпионаты и баскетбольные ивенты Узбекистана"
+      />
 
       <section className="container-page py-14">
         {isLoading ? (

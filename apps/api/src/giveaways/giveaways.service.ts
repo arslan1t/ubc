@@ -117,11 +117,19 @@ export class GiveawaysService {
     await this.prisma.giveaway.delete({ where: { id } });
   }
 
-  async uploadCover(id: string, buffer: Buffer, mimeType?: string) {
+  async uploadCover(
+    id: string,
+    buffer: Buffer,
+    mimeType?: string,
+    kind: 'cover' | 'banner' = 'cover',
+  ) {
     const giveaway = await this.prisma.giveaway.findUnique({ where: { id } });
     if (!giveaway) throw new NotFoundException('Розыгрыш не найден');
-    const result = await this.storage.uploadImage(buffer, `giveaways/${id}/cover`, mimeType);
-    return this.prisma.giveaway.update({ where: { id }, data: { coverUrl: result.url } });
+    const result = await this.storage.uploadImage(buffer, `giveaways/${id}/${kind}`, mimeType);
+    return this.prisma.giveaway.update({
+      where: { id },
+      data: kind === 'banner' ? { bannerUrl: result.url } : { coverUrl: result.url },
+    });
   }
 
   /** Full entries list for the review queue. */

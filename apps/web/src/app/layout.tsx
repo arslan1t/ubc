@@ -20,7 +20,7 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://ubc-web-azure.vercel.app'),
+  metadataBase: new URL('https://www.ubculture.uz'),
   title: {
     default: 'UBC — Uzbek Basketball Culture',
     template: '%s | UBC',
