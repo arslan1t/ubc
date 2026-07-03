@@ -26,6 +26,64 @@ const SUBMISSION_STATUS_COLOR: Record<string, string> = {
   CHANGES_REQUESTED: 'text-sky-400 bg-sky-400/10',
 };
 
+const PROVIDER_LABEL: Record<string, string> = {
+  LOCAL: 'Email',
+  GOOGLE: 'Google',
+  TELEGRAM: 'Telegram',
+};
+
+function UserDetailsPanel({ user }: { user: any }) {
+  const facts: Array<[string, React.ReactNode]> = [
+    ['Email', user.email ?? '—'],
+    ['Телефон', user.phone ?? '—'],
+    ['Telegram', user.telegramUsername ? `@${user.telegramUsername}` : '—'],
+    [
+      'Instagram',
+      user.instagramUsername ? (
+        <a
+          href={`https://instagram.com/${user.instagramUsername}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-pink-400 hover:underline"
+        >
+          @{user.instagramUsername}
+        </a>
+      ) : (
+        '—'
+      ),
+    ],
+    ['Город', user.city ?? '—'],
+    ['Вход через', PROVIDER_LABEL[user.provider] ?? user.provider ?? '—'],
+    ['Зарегистрирован', formatDate(user.createdAt, 'd MMM yyyy, HH:mm')],
+    ['Последняя активность', formatRelativeDate(user.updatedAt ?? user.createdAt)],
+    ['Организовал игр', user._count?.organizedRuns ?? 0],
+    ['Участвовал в играх', user._count?.participations ?? 0],
+    ['Отзывов', user._count?.reviews ?? 0],
+    ['Заявок (контент)', user._count?.submissions ?? 0],
+    ['Заявок на турниры', user._count?.eventRegistrations ?? 0],
+    ['Розыгрышей', user._count?.giveawayEntries ?? 0],
+  ];
+
+  return (
+    <div className="px-3 pb-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1.5 rounded-lg bg-secondary/20 px-3 py-2.5 text-xs">
+        {facts.map(([label, value]) => (
+          <div key={label as string} className="flex flex-col">
+            <span className="text-muted-foreground/60 text-[10px] uppercase tracking-wide">{label}</span>
+            <span className="font-medium truncate">{value}</span>
+          </div>
+        ))}
+        {user.bio && (
+          <div className="col-span-2 md:col-span-3 flex flex-col">
+            <span className="text-muted-foreground/60 text-[10px] uppercase tracking-wide">О себе</span>
+            <span className="font-medium">{user.bio}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function UserSubmissionsPanel({ userId }: { userId: string }) {
   const { data, isLoading } = useUserSubmissions(userId, true);
   const items = data?.data ?? [];
@@ -195,7 +253,12 @@ export default function UsersPage() {
                   )}
                 </div>
 
-                {expanded && <UserSubmissionsPanel userId={u.id} />}
+                {expanded && (
+                  <>
+                    <UserDetailsPanel user={u} />
+                    <UserSubmissionsPanel userId={u.id} />
+                  </>
+                )}
               </div>
             );
           })}

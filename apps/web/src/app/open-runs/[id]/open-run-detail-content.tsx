@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { useOpenRun, useJoinOpenRun, useLeaveOpenRun, useCancelOpenRun } from '@/hooks/use-open-runs';
+import { useOpenRun, useJoinOpenRun, useLeaveOpenRun, useCancelOpenRun, useRemoveParticipant } from '@/hooks/use-open-runs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/use-auth';
 import {
   Calendar, Clock, MapPin, Users, Wallet, ArrowLeft,
-  User, CheckCircle, XCircle, Lock,
+  User, CheckCircle, XCircle, Lock, X,
 } from 'lucide-react';
 import { formatDate, formatPrice, getInitials } from '@/lib/utils';
 import { SKILL_META, type SkillLevel } from '@/lib/pickup';
@@ -24,6 +24,7 @@ const STATUS_LABELS: Record<string, { label: string; variant: any }> = {
 export function OpenRunDetailContent({ id }: { id: string }) {
   const { data: run, isLoading } = useOpenRun(id);
   const { user, isAuthenticated } = useAuth();
+  const removeParticipant = useRemoveParticipant();
   const { mutate: join, isPending: joining } = useJoinOpenRun();
   const { mutate: leave, isPending: leaving } = useLeaveOpenRun();
   const { mutate: cancel, isPending: cancelling } = useCancelOpenRun();
@@ -177,26 +178,46 @@ export function OpenRunDetailContent({ id }: { id: string }) {
                         {p.user.firstName} {p.user.lastName}
                       </span>
                     </Link>
-                    <Badge
-                      variant={
-                        p.status === 'APPROVED'
-                          ? 'success'
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant={
+                          p.status === 'APPROVED'
+                            ? 'success'
+                            : p.status === 'PENDING'
+                            ? 'warning'
+                            : p.status === 'WAITLISTED'
+                            ? 'secondary'
+                            : 'destructive'
+                        }
+                        className="text-xs"
+                      >
+                        {p.status === 'APPROVED'
+                          ? 'В игре'
                           : p.status === 'PENDING'
-                          ? 'warning'
+                          ? 'Ожидает'
                           : p.status === 'WAITLISTED'
-                          ? 'secondary'
-                          : 'destructive'
-                      }
-                      className="text-xs"
-                    >
-                      {p.status === 'APPROVED'
-                        ? 'В игре'
-                        : p.status === 'PENDING'
-                        ? 'Ожидает'
-                        : p.status === 'WAITLISTED'
-                        ? 'Лист ожидания'
-                        : 'Отклонён'}
-                    </Badge>
+                          ? 'Лист ожидания'
+                          : 'Отклонён'}
+                      </Badge>
+                      <button
+                        onClick={() => {
+                          if (!window.confirm(`Убрать ${p.user.firstName} ${p.user.lastName} из игры?`)) return;
+                          removeParticipant.mutate(
+                            { runId: run.id, participantId: p.id },
+                            {
+                              onSuccess: () => toast.success('Участник убран из игры'),
+                              onError: (err: any) =>
+                                toast.error(err?.response?.data?.message ?? 'Не удалось убрать участника'),
+                            },
+                          );
+                        }}
+                        disabled={removeParticipant.isPending}
+                        title="Убрать из игры"
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

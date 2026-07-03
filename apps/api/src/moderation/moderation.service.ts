@@ -289,8 +289,34 @@ export class ModerationService {
         return { resultId: news.id, link: `/news/${news.slug}` };
       }
 
-      // EVENT / PHOTO / REPORT / RESULT are materialized once those domains
-      // land (Phases 2/5). Approving them only records the decision for now.
+      // Photos attached to court reviews: approval publishes them into the
+      // court's gallery.
+      case SubmissionType.PHOTO: {
+        const images: Array<{ url: string; mediumUrl: string; thumbnailUrl: string; key?: string }> =
+          Array.isArray(p.images) ? p.images : [];
+        if (sub.targetType !== 'COURT' || !sub.targetId || !images.length) {
+          return { resultId: null, link: null };
+        }
+        const court = await this.prisma.court.findUnique({ where: { id: sub.targetId } });
+        if (!court) throw new BadRequestException('Корт этой заявки уже удалён');
+
+        const existing = await this.prisma.courtImage.count({ where: { courtId: court.id } });
+        await this.prisma.courtImage.createMany({
+          data: images.map((img, i) => ({
+            courtId: court.id,
+            url: img.url,
+            mediumUrl: img.mediumUrl,
+            thumbnailUrl: img.thumbnailUrl,
+            storageKey: img.key ?? '',
+            isPrimary: existing === 0 && i === 0,
+            order: existing + i,
+          })),
+        });
+        return { resultId: court.id, link: `/courts/${court.slug}` };
+      }
+
+      // EVENT / REPORT / RESULT are materialized once those domains land.
+      // Approving them only records the decision for now.
       default:
         return { resultId: null, link: null };
     }

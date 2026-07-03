@@ -15,6 +15,7 @@ import {
   useUploadGiveawayCover,
   useGiveawayEntriesAdmin,
   useReviewGiveawayEntry,
+  useDeleteGiveawayEntry,
   type GiveawayFormValues,
   type GiveawayListItem,
 } from '@/hooks/use-giveaways';
@@ -135,11 +136,17 @@ function GiveawayForm({
 function EntriesPanel({ giveawayId, onClose }: { giveawayId: string; onClose: () => void }) {
   const { data, isLoading, refetch } = useGiveawayEntriesAdmin(giveawayId);
   const review = useReviewGiveawayEntry(giveawayId);
+  const deleteEntry = useDeleteGiveawayEntry(giveawayId);
 
   const handleReject = (entryId: string) => {
     const note = window.prompt('Причина отказа (увидит участник):');
     if (note === null) return;
     review.mutate({ entryId, status: 'REJECTED', note: note || undefined }, { onSuccess: () => refetch() });
+  };
+
+  const handleDelete = (e: any) => {
+    if (!window.confirm(`Удалить заявку ${e.user.firstName} ${e.user.lastName}?`)) return;
+    deleteEntry.mutate(e.id, { onSuccess: () => refetch() });
   };
 
   const pending = data?.filter((e) => e.status === 'PENDING') ?? [];
@@ -181,26 +188,36 @@ function EntriesPanel({ giveawayId, onClose }: { giveawayId: string; onClose: ()
                   <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold', meta.cls)}>
                     {meta.label}
                   </span>
-                  {e.status === 'PENDING' && (
-                    <div className="flex gap-1 shrink-0">
-                      <button
-                        onClick={() => review.mutate({ entryId: e.id, status: 'APPROVED' }, { onSuccess: () => refetch() })}
-                        disabled={review.isPending}
-                        className="p-1.5 rounded-lg bg-emerald-400/10 text-emerald-400 hover:bg-emerald-400/20 transition-colors"
-                        title="В пул"
-                      >
-                        <Check className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleReject(e.id)}
-                        disabled={review.isPending}
-                        className="p-1.5 rounded-lg bg-red-400/10 text-red-400 hover:bg-red-400/20 transition-colors"
-                        title="Отклонить"
-                      >
-                        <Ban className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex gap-1 shrink-0">
+                    {e.status === 'PENDING' && (
+                      <>
+                        <button
+                          onClick={() => review.mutate({ entryId: e.id, status: 'APPROVED' }, { onSuccess: () => refetch() })}
+                          disabled={review.isPending}
+                          className="p-1.5 rounded-lg bg-emerald-400/10 text-emerald-400 hover:bg-emerald-400/20 transition-colors"
+                          title="В пул"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleReject(e.id)}
+                          disabled={review.isPending}
+                          className="p-1.5 rounded-lg bg-red-400/10 text-red-400 hover:bg-red-400/20 transition-colors"
+                          title="Отклонить"
+                        >
+                          <Ban className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={() => handleDelete(e)}
+                      disabled={deleteEntry.isPending}
+                      className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                      title="Удалить заявку"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs text-muted-foreground pl-10">
                   {e.comment && <span className="italic">«{e.comment}»</span>}

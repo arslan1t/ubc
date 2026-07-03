@@ -268,6 +268,21 @@ export function useReviewRegistration(eventId: string) {
   });
 }
 
+export function useDeleteRegistration(eventId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (regId: string) => api.delete(`/events/${eventId}/registrations/${regId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events', eventId, 'registrations'] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      toast.success('Заявка удалена');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message ?? 'Не удалось удалить заявку');
+    },
+  });
+}
+
 export function useGenerateBracket(eventId: string) {
   const queryClient = useQueryClient();
   return useMutation({

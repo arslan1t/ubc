@@ -13,7 +13,7 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ParticipantStatus, UserRole } from '@prisma/client';
 import { OpenRunsService } from './open-runs.service';
-import { CreateOpenRunDto, OpenRunFiltersDto } from './dto/open-run.dto';
+import { CreateOpenRunDto, UpdateOpenRunDto, OpenRunFiltersDto } from './dto/open-run.dto';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -58,6 +58,29 @@ export class OpenRunsController {
   @ApiOperation({ summary: 'Создать Open Run' })
   create(@Body() dto: CreateOpenRunDto, @CurrentUser('id') userId: string) {
     return this.openRunsService.create(dto, userId);
+  }
+
+  @ApiBearerAuth()
+  @Patch(':id')
+  @ApiOperation({ summary: 'Редактировать игру (организатор или модератор/админ)' })
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateOpenRunDto,
+    @CurrentUser() actor: { id: string; role: UserRole },
+  ) {
+    return this.openRunsService.update(id, dto, actor);
+  }
+
+  @ApiBearerAuth()
+  @Delete(':id/participants/:participantId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Убрать участника из игры (организатор или модератор/админ)' })
+  removeParticipant(
+    @Param('id') runId: string,
+    @Param('participantId') participantId: string,
+    @CurrentUser() actor: { id: string; role: UserRole },
+  ) {
+    return this.openRunsService.removeParticipant(runId, participantId, actor);
   }
 
   @ApiBearerAuth()
