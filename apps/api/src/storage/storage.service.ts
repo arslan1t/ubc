@@ -101,6 +101,8 @@ export class StorageService {
     // rotate() with no args auto-orients from EXIF — otherwise phone photos
     // (especially HEIC) can land sideways. Cap the "original" at 1920px so a
     // 12+ MP phone photo doesn't ship a multi-megabyte file for web display.
+    // Medium and thumbnail are CROPPED to fixed aspects (16:9 and 1:1) so every
+    // card on the site shows content at the same scale no matter what users upload.
     const [original, medium, thumbnail] = await Promise.all([
       sharp(buffer)
         .rotate()
@@ -109,12 +111,12 @@ export class StorageService {
         .toBuffer(),
       sharp(buffer)
         .rotate()
-        .resize(800, 600, { fit: 'inside', withoutEnlargement: true })
+        .resize(1280, 720, { fit: 'cover', position: 'attention' })
         .jpeg({ quality: 80, mozjpeg: true })
         .toBuffer(),
       sharp(buffer)
         .rotate()
-        .resize(400, 300, { fit: 'cover' })
+        .resize(400, 400, { fit: 'cover', position: 'attention' })
         .jpeg({ quality: 75, mozjpeg: true })
         .toBuffer(),
     ]);
@@ -182,15 +184,36 @@ export class StorageService {
 
   private async upload(key: string, body: Buffer, contentType: string) {
     const client = this.ensureConfigured();
-    await client.send(
-      new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-        Body: body,
-        ContentType: contentType,
-        CacheControl: 'public, max-age=31536000, immutable',
-      }),
-    );
+    try {
+      await client.send(
+        new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: key,
+          Body: body,
+          ContentType: contentType,
+          CacheControl: 'public, max-age=31536000, immutable',
+        }),
+      );
+    } catch (err: any) {
+      const name = err?.name ?? 'UnknownError';
+      const httpStatus = err?.$metadata?.httpStatusCode;
+      this.logger.error(
+        `R2 PutObject failed (${name}, http ${httpStatus}) bucket="${this.bucket}" key="${key}": ${err?.message}`,
+      );
+      if (name === 'AccessDenied' || httpStatus === 403) {
+        throw new ServiceUnavailableException(
+          'Хранилище отклонило загрузку (AccessDenied): проверь, что R2 API-токен имеет право Object Read & Write для бакета и что имя бакета совпадает.',
+        );
+      }
+      if (name === 'NoSuchBucket' || httpStatus === 404) {
+        throw new ServiceUnavailableException(
+          `Бакет "${this.bucket}" не найден в R2 — проверь R2_BUCKET/R2_BUCKET_NAME.`,
+        );
+      }
+      throw new ServiceUnavailableException(
+        `Не удалось сохранить файл в хранилище (${name}). Попробуйте ещё раз позже.`,
+      );
+    }
   }
 
   getUrl(key: string): string {

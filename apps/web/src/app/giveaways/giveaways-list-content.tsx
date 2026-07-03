@@ -5,21 +5,21 @@ import Image from 'next/image';
 import { Gift, Users, Trophy, ChevronRight } from 'lucide-react';
 import { useGiveaways } from '@/hooks/use-giveaways';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PageHero } from '@/components/shared/page-hero';
 import { cn } from '@/lib/utils';
 
 export function GiveawaysListContent() {
   const { data: giveaways, isLoading } = useGiveaways();
 
   return (
-    <div className="container-page py-8">
-      <div className="mb-8">
-        <h1 className="font-display font-black text-3xl md:text-4xl mb-2">
-          Розыгрыши <span className="text-primary">UBC</span>
-        </h1>
-        <p className="text-muted-foreground">
-          Выполняй условия, попадай в пул и выигрывай призы на колесе
-        </p>
-      </div>
+    <div className="min-h-screen">
+      <PageHero
+        eyebrow="Призы"
+        goldTitle="Розыгрыши"
+        subtitle="Выполняй условия, попадай в пул и выигрывай призы на колесе"
+      />
+
+      <div className="container-page py-8">
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -96,6 +96,7 @@ export function GiveawaysListContent() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }
