@@ -15,7 +15,13 @@ import type { FastifyRequest } from 'fastify';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { EventsService } from './events.service';
-import { CreateEventDto, UpdateEventDto } from './dto/event.dto';
+import {
+  CreateEventDto,
+  UpdateEventDto,
+  RegisterEventDto,
+  ReviewRegistrationDto,
+  UpdateMatchDto,
+} from './dto/event.dto';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -111,16 +117,77 @@ export class EventsController {
 
   @ApiBearerAuth()
   @Post(':id/register')
-  @ApiOperation({ summary: 'Зарегистрироваться на турнир' })
-  register(@Param('id') id: string, @CurrentUser('id') userId: string) {
-    return this.eventsService.register(id, userId);
+  @ApiOperation({ summary: 'Подать заявку на участие (анкета + хайлайт/Instagram)' })
+  register(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+    @Body() dto: RegisterEventDto,
+  ) {
+    return this.eventsService.register(id, userId, dto);
+  }
+
+  @ApiBearerAuth()
+  @Get(':id/my-registration')
+  @ApiOperation({ summary: 'Моя заявка на турнир (статус анкеты)' })
+  myRegistration(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    return this.eventsService.myRegistration(id, userId);
   }
 
   @ApiBearerAuth()
   @Delete(':id/register')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Отменить регистрацию' })
+  @ApiOperation({ summary: 'Отменить заявку/регистрацию' })
   unregister(@Param('id') id: string, @CurrentUser('id') userId: string) {
     return this.eventsService.unregister(id, userId);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN)
+  @Patch(':id/registrations/:regId')
+  @ApiOperation({ summary: 'Одобрить/отклонить заявку участника (admin)' })
+  reviewRegistration(
+    @Param('id') id: string,
+    @Param('regId') regId: string,
+    @Body() dto: ReviewRegistrationDto,
+  ) {
+    return this.eventsService.reviewRegistration(id, regId, dto.status, dto.note);
+  }
+
+  // ─── Bracket ───
+
+  @Public()
+  @Get(':id/bracket')
+  @ApiOperation({ summary: 'Турнирная сетка (public)' })
+  getBracket(@Param('id') id: string) {
+    return this.eventsService.getBracket(id);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN)
+  @Post(':id/bracket/generate')
+  @ApiOperation({ summary: 'Сгенерировать сетку из одобренных участников (admin)' })
+  generateBracket(@Param('id') id: string) {
+    return this.eventsService.generateBracket(id);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN)
+  @Delete(':id/bracket')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Сбросить сетку (admin)' })
+  resetBracket(@Param('id') id: string) {
+    return this.eventsService.resetBracket(id);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN)
+  @Patch(':id/matches/:matchId')
+  @ApiOperation({ summary: 'Обновить матч: счёт/статус/победитель (admin)' })
+  updateMatch(
+    @Param('id') id: string,
+    @Param('matchId') matchId: string,
+    @Body() dto: UpdateMatchDto,
+  ) {
+    return this.eventsService.updateMatch(id, matchId, dto);
   }
 }

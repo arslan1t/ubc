@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Plus, Pencil, Trash2, Users, X, ImagePlus, Loader2 } from 'lucide-react';
+import {
+  Plus, Pencil, Trash2, Users, X, ImagePlus, Loader2,
+  Check, Ban, ExternalLink, GitBranch, RefreshCw,
+} from 'lucide-react';
 import {
   useEvents,
   useCreateEvent,
@@ -10,11 +13,17 @@ import {
   useDeleteEvent,
   useUploadEventCover,
   useEventRegistrationsAdmin,
+  useReviewRegistration,
+  useBracket,
+  useGenerateBracket,
+  useResetBracket,
+  useUpdateMatch,
   type EventListItem,
   type EventStatus,
   type EventFormValues,
+  type BracketMatch,
 } from '@/hooks/use-events';
-import { formatDate, getInitials } from '@/lib/utils';
+import { formatDate, getInitials, cn } from '@/lib/utils';
 
 const STATUS_OPTIONS: { value: EventStatus; label: string }[] = [
   { value: 'UPCOMING', label: 'Скоро' },
@@ -184,30 +193,239 @@ function EventForm({
   );
 }
 
+const REG_STATUS_META: Record<string, { label: string; cls: string }> = {
+  PENDING: { label: 'На проверке', cls: 'text-amber-400 bg-amber-400/10' },
+  APPROVED: { label: 'Зачислен', cls: 'text-emerald-400 bg-emerald-400/10' },
+  REJECTED: { label: 'Отклонён', cls: 'text-red-400 bg-red-400/10' },
+};
+
 function RegistrationsPanel({ eventId, onClose }: { eventId: string; onClose: () => void }) {
   const { data, isLoading } = useEventRegistrationsAdmin(eventId);
+  const review = useReviewRegistration(eventId);
+
+  const handleReject = (regId: string) => {
+    const note = window.prompt('Причина отказа (увидит игрок):');
+    if (note === null) return;
+    review.mutate({ regId, status: 'REJECTED', note: note || undefined });
+  };
+
+  const pending = data?.filter((r) => r.status === 'PENDING') ?? [];
+  const approved = data?.filter((r) => r.status === 'APPROVED') ?? [];
+  const rejected = data?.filter((r) => r.status === 'REJECTED') ?? [];
+
+  const renderRow = (r: any) => {
+    const meta = REG_STATUS_META[r.status ?? 'APPROVED'] ?? REG_STATUS_META.APPROVED;
+    return (
+      <div key={r.id} className="rounded-lg border border-border/60 bg-secondary/20 p-3">
+        <div className="flex items-center gap-3 text-sm">
+          <span className="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold shrink-0">
+            {getInitials(r.user.firstName, r.user.lastName)}
+          </span>
+          <div className="flex-1 min-w-0">
+            <span className="font-medium">{r.user.firstName} {r.user.lastName}</span>
+            {r.user.telegramUsername && (
+              <span className="text-xs text-muted-foreground ml-2">@{r.user.telegramUsername}</span>
+            )}
+          </div>
+          <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold', meta.cls)}>
+            {meta.label}
+          </span>
+          {r.status === 'PENDING' && (
+            <div className="flex gap-1 shrink-0">
+              <button
+                onClick={() => review.mutate({ regId: r.id, status: 'APPROVED' })}
+                disabled={review.isPending}
+                className="p-1.5 rounded-lg bg-emerald-400/10 text-emerald-400 hover:bg-emerald-400/20 transition-colors"
+                title="Зачислить"
+              >
+                <Check className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handleReject(r.id)}
+                disabled={review.isPending}
+                className="p-1.5 rounded-lg bg-red-400/10 text-red-400 hover:bg-red-400/20 transition-colors"
+                title="Отклонить"
+              >
+                <Ban className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground pl-10">
+          {r.height && <span>Рост: <b className="text-foreground">{r.height} см</b></span>}
+          {r.weight && <span>Вес: <b className="text-foreground">{r.weight} кг</b></span>}
+          {r.age && <span>Возраст: <b className="text-foreground">{r.age}</b></span>}
+          {r.highlightUrl && (
+            <a href={r.highlightUrl} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sky-400 hover:underline">
+              Хайлайт <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
+          {r.instagram && (
+            <a href={`https://instagram.com/${r.instagram}`} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-pink-400 hover:underline">
+              @{r.instagram} <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
+          <span className="ml-auto">{formatDate(r.createdAt, 'd MMM, HH:mm')}</span>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="rounded-xl border border-border bg-card p-4 mb-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold">Зарегистрированные участники</h3>
+        <h3 className="text-sm font-semibold">
+          Заявки участников
+          {pending.length > 0 && (
+            <span className="ml-2 rounded-full bg-amber-400/15 text-amber-400 px-2 py-0.5 text-xs">
+              {pending.length} на проверке
+            </span>
+          )}
+        </h3>
         <button onClick={onClose} className="p-1 rounded hover:bg-secondary"><X className="w-4 h-4" /></button>
       </div>
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Загрузка...</p>
       ) : !data || data.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Пока никого.</p>
+        <p className="text-sm text-muted-foreground">Заявок пока нет.</p>
       ) : (
         <div className="space-y-2">
-          {data.map((r: any) => (
-            <div key={r.id} className="flex items-center gap-3 text-sm">
-              <span className="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold shrink-0">
-                {getInitials(r.user.firstName, r.user.lastName)}
-              </span>
-              <span>{r.user.firstName} {r.user.lastName}</span>
-              {r.user.telegramUsername && (
-                <span className="text-xs text-muted-foreground">@{r.user.telegramUsername}</span>
-              )}
-              <span className="text-xs text-muted-foreground ml-auto">{formatDate(r.createdAt, 'd MMM, HH:mm')}</span>
+          {[...pending, ...approved, ...rejected].map(renderRow)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BracketPanel({ eventId, onClose }: { eventId: string; onClose: () => void }) {
+  const { data: bracket, isLoading } = useBracket(eventId);
+  const generate = useGenerateBracket(eventId);
+  const reset = useResetBracket(eventId);
+  const updateMatch = useUpdateMatch(eventId);
+
+  const matches = bracket?.matches ?? [];
+  const totalRounds = matches.length ? Math.max(...matches.map((m) => m.round)) : 0;
+
+  const handleScore = (m: BracketMatch) => {
+    if (!m.player1 || !m.player2) return;
+    const s1 = window.prompt(`Очки — ${m.player1.firstName} ${m.player1.lastName}:`, m.score1?.toString() ?? '');
+    if (s1 === null) return;
+    const s2 = window.prompt(`Очки — ${m.player2.firstName} ${m.player2.lastName}:`, m.score2?.toString() ?? '');
+    if (s2 === null) return;
+    const score1 = parseInt(s1, 10);
+    const score2 = parseInt(s2, 10);
+    if (isNaN(score1) || isNaN(score2)) return;
+    if (score1 === score2) {
+      window.alert('В 1v1 не бывает ничьей — счёт должен отличаться');
+      return;
+    }
+    const winnerId = score1 > score2 ? m.player1Id! : m.player2Id!;
+    updateMatch.mutate({ matchId: m.id, score1, score2, winnerId, status: 'COMPLETED' });
+  };
+
+  const toggleLive = (m: BracketMatch) => {
+    updateMatch.mutate({ matchId: m.id, status: m.status === 'LIVE' ? 'SCHEDULED' : 'LIVE' });
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-4 mb-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold">Турнирная сетка</h3>
+        <div className="flex items-center gap-2">
+          {matches.length > 0 && (
+            <button
+              onClick={() => {
+                if (window.confirm('Сбросить сетку? Все результаты матчей будут удалены.')) reset.mutate();
+              }}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-destructive/10 text-destructive text-xs font-medium hover:bg-destructive/20 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Сбросить
+            </button>
+          )}
+          <button
+            onClick={() => {
+              if (matches.length && !window.confirm('Пересоздать сетку? Текущие результаты будут удалены.')) return;
+              generate.mutate();
+            }}
+            disabled={generate.isPending}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50"
+          >
+            {generate.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+            {matches.length ? 'Пересоздать' : 'Сгенерировать из одобренных'}
+          </button>
+          <button onClick={onClose} className="p-1 rounded hover:bg-secondary"><X className="w-4 h-4" /></button>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">Загрузка...</p>
+      ) : !matches.length ? (
+        <p className="text-sm text-muted-foreground">
+          Сетки ещё нет. Одобри участников и нажми «Сгенерировать» — игроки будут расставлены случайно.
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {Array.from({ length: totalRounds }, (_, i) => i + 1).map((round) => (
+            <div key={round}>
+              <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                Раунд {round} из {totalRounds}
+              </div>
+              <div className="grid sm:grid-cols-2 gap-2">
+                {matches.filter((m) => m.round === round).map((m) => (
+                  <div
+                    key={m.id}
+                    className={cn(
+                      'rounded-lg border p-2.5 text-sm',
+                      m.status === 'LIVE' ? 'border-emerald-400/50' : 'border-border/60',
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex-1 min-w-0 space-y-1">
+                        {[
+                          { p: m.player1, s: m.score1 },
+                          { p: m.player2, s: m.score2 },
+                        ].map(({ p, s }, idx) => (
+                          <div key={idx} className="flex items-center justify-between gap-2">
+                            <span className={cn(
+                              'truncate text-xs',
+                              p && m.winnerId === p.id ? 'font-bold text-primary' : '',
+                              !p && 'text-muted-foreground italic',
+                            )}>
+                              {p ? `${p.firstName} ${p.lastName}` : 'Ожидается'}
+                            </span>
+                            <span className="text-xs font-display font-black tabular-nums">{s ?? '–'}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {m.player1 && m.player2 && (
+                        <div className="flex flex-col gap-1 shrink-0">
+                          <button
+                            onClick={() => handleScore(m)}
+                            className="px-2 py-1 rounded bg-secondary/60 text-[11px] font-medium hover:bg-secondary transition-colors"
+                          >
+                            Счёт
+                          </button>
+                          {m.status !== 'COMPLETED' && (
+                            <button
+                              onClick={() => toggleLive(m)}
+                              className={cn(
+                                'px-2 py-1 rounded text-[11px] font-medium transition-colors',
+                                m.status === 'LIVE'
+                                  ? 'bg-emerald-400/20 text-emerald-400'
+                                  : 'bg-secondary/60 hover:bg-secondary',
+                              )}
+                            >
+                              {m.status === 'LIVE' ? 'LIVE ✓' : 'LIVE'}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
@@ -224,6 +442,7 @@ export default function AdminEventsPage() {
 
   const [mode, setMode] = useState<'none' | 'create' | string>('none');
   const [viewingRegs, setViewingRegs] = useState<string | null>(null);
+  const [viewingBracket, setViewingBracket] = useState<string | null>(null);
 
   const editingEvent = typeof mode === 'string' && mode !== 'none' && mode !== 'create'
     ? events?.find((e) => e.id === mode)
@@ -282,6 +501,7 @@ export default function AdminEventsPage() {
       )}
 
       {viewingRegs && <RegistrationsPanel eventId={viewingRegs} onClose={() => setViewingRegs(null)} />}
+      {viewingBracket && <BracketPanel eventId={viewingBracket} onClose={() => setViewingBracket(null)} />}
 
       {isLoading ? (
         <div className="space-y-2">
@@ -302,6 +522,11 @@ export default function AdminEventsPage() {
               <button onClick={() => setViewingRegs(viewingRegs === event.id ? null : event.id)}
                 className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-secondary/50 text-xs font-medium hover:bg-secondary transition-colors">
                 <Users className="w-3.5 h-3.5" /> {event.registrationCount}
+              </button>
+              <button onClick={() => setViewingBracket(viewingBracket === event.id ? null : event.id)}
+                title="Турнирная сетка"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-secondary/50 text-xs font-medium hover:bg-secondary transition-colors">
+                <GitBranch className="w-3.5 h-3.5" /> Сетка
               </button>
               <button onClick={() => setMode(event.id)} className="p-2 rounded-lg hover:bg-secondary transition-colors">
                 <Pencil className="w-4 h-4 text-muted-foreground" />

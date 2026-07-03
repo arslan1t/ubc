@@ -13,6 +13,7 @@ import { StorageModule } from './storage/storage.module';
 import { CommunityModule } from './community/community.module';
 import { ModerationModule } from './moderation/moderation.module';
 import { EventsModule } from './events/events.module';
+import { GiveawaysModule } from './giveaways/giveaways.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { AnalyticsModule } from './analytics/analytics.module';
@@ -34,6 +35,7 @@ import { TelegramBotModule } from './telegram-bot/telegram-bot.module';
     CommunityModule,
     ModerationModule,
     EventsModule,
+    GiveawaysModule,
     NotificationsModule,
     AuditLogsModule,
     AnalyticsModule,

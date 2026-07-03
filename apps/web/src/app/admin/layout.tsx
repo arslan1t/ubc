@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth, useMe, useLogout } from '@/hooks/use-auth';
 import { useModerationStats } from '@/hooks/use-moderation';
-import { Newspaper, Home, LogOut, ShieldCheck, Users, Trophy, MapPin, Zap, Film, Star, Bell, BarChart3, ScrollText, Lock } from 'lucide-react';
+import { Newspaper, Home, LogOut, ShieldCheck, Users, Trophy, MapPin, Zap, Film, Star, Bell, BarChart3, ScrollText, Lock, Gift } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 
@@ -77,6 +77,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const nav = [
     { href: '/admin/moderation', label: 'Модерация', icon: ShieldCheck, badge: pending, show: true },
     { href: '/admin/events', label: 'Турниры', icon: Trophy, show: isAdmin },
+    { href: '/admin/giveaways', label: 'Розыгрыши', icon: Gift, show: isAdmin },
     { href: '/admin/courts', label: 'Корты', icon: MapPin, show: true },
     { href: '/admin/pickup-games', label: 'Pickup Games', icon: Zap, show: true },
     { href: '/admin/news', label: 'Новости', icon: Newspaper, show: true },

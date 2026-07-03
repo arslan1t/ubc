@@ -6,13 +6,21 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Calendar, MapPin, Trophy, ScrollText, Users, ChevronDown,
-  ExternalLink, CheckCircle2,
+  ExternalLink, CheckCircle2, Clock3, XCircle, GitBranch,
 } from 'lucide-react';
-import { useEvent, useRegisterForEvent, useUnregisterFromEvent } from '@/hooks/use-events';
+import {
+  useEvent,
+  useRegisterForEvent,
+  useUnregisterFromEvent,
+  useMyEventRegistration,
+  useBracket,
+} from '@/hooks/use-events';
 import { useAuth } from '@/hooks/use-auth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Countdown } from '@/components/events/countdown';
+import { EventApplicationForm } from '@/components/events/event-application-form';
+import { TournamentBracket } from '@/components/events/tournament-bracket';
 import { formatDate, getInitials } from '@/lib/utils';
 
 const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
@@ -40,7 +48,10 @@ export function EventDetailContent({ slug }: { slug: string }) {
   const { user, isAuthenticated } = useAuth();
   const { mutate: register, isPending: registering } = useRegisterForEvent(event?.id ?? '', slug);
   const { mutate: unregister, isPending: unregistering } = useUnregisterFromEvent(event?.id ?? '', slug);
+  const { data: myReg } = useMyEventRegistration(event?.id ?? '', isAuthenticated);
+  const { data: bracket } = useBracket(event?.id ?? '', event?.status === 'LIVE');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [applying, setApplying] = useState(false);
 
   if (isLoading) {
     return (
@@ -60,20 +71,8 @@ export function EventDetailContent({ slug }: { slug: string }) {
   }
 
   const status = STATUS_LABEL[event.status];
-  const isRegistered = !!user && event.registrations.some((r) => r.userId === user.id);
   const isFull = !!event.maxParticipants && event.registrationCount >= event.maxParticipants;
-
-  const handleRegisterClick = () => {
-    if (!isAuthenticated) {
-      router.push(`/auth/login?redirect=/events/${slug}`);
-      return;
-    }
-    if (isRegistered) {
-      unregister();
-    } else {
-      register();
-    }
-  };
+  const hasBracket = !!bracket?.matches?.length;
 
   return (
     <div className="min-h-screen pb-16">
@@ -111,6 +110,18 @@ export function EventDetailContent({ slug }: { slug: string }) {
 
       <div className="container-page py-8 grid lg:grid-cols-[1fr_320px] gap-6">
         <div className="space-y-6 order-2 lg:order-1">
+          {hasBracket && (
+            <Section icon={GitBranch} title="Турнирная сетка">
+              {event.status === 'LIVE' && (
+                <p className="text-xs text-emerald-400 mb-3 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Обновляется в реальном времени
+                </p>
+              )}
+              <TournamentBracket matches={bracket!.matches} highlightUserId={user?.id} />
+            </Section>
+          )}
+
           {event.description && (
             <Section icon={ScrollText} title="О турнире">
               <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{event.description}</p>
@@ -192,25 +203,75 @@ export function EventDetailContent({ slug }: { slug: string }) {
           </Section>
 
           <div className="rounded-2xl glass-content-card p-5">
-            <Button
-              variant="gold"
-              className="w-full"
-              disabled={registering || unregistering || (isFull && !isRegistered) || event.status === 'COMPLETED'}
-              onClick={handleRegisterClick}
-            >
-              {isRegistered ? (
-                <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Вы зарегистрированы — отменить?</span>
-              ) : isFull ? (
-                'Мест нет'
-              ) : event.status === 'COMPLETED' ? (
-                'Регистрация закрыта'
+            {!isAuthenticated ? (
+              <Button
+                variant="gold"
+                className="w-full"
+                onClick={() => router.push(`/auth/login?redirect=/events/${slug}`)}
+              >
+                Войти и подать заявку
+              </Button>
+            ) : myReg?.status === 'PENDING' ? (
+              <div className="text-center space-y-2">
+                <div className="flex items-center justify-center gap-2 text-amber-400 font-semibold text-sm">
+                  <Clock3 className="w-4 h-4" /> Заявка на рассмотрении
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Мы проверим анкету и хайлайты — ответ придёт в уведомления.
+                </p>
+                <button
+                  onClick={() => unregister()}
+                  disabled={unregistering}
+                  className="text-xs text-muted-foreground hover:text-destructive transition-colors underline"
+                >
+                  Отозвать заявку
+                </button>
+              </div>
+            ) : myReg?.status === 'APPROVED' ? (
+              <div className="text-center space-y-2">
+                <div className="flex items-center justify-center gap-2 text-emerald-400 font-semibold text-sm">
+                  <CheckCircle2 className="w-4 h-4" /> Ты в игре!
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Заявка одобрена. Следи за сеткой и временем своего матча.
+                </p>
+              </div>
+            ) : myReg?.status === 'REJECTED' && !applying ? (
+              <div className="text-center space-y-2">
+                <div className="flex items-center justify-center gap-2 text-red-400 font-semibold text-sm">
+                  <XCircle className="w-4 h-4" /> Заявка отклонена
+                </div>
+                {myReg.reviewNote && (
+                  <p className="text-xs text-muted-foreground italic">«{myReg.reviewNote}»</p>
+                )}
+                <Button variant="outline" size="sm" className="w-full" onClick={() => setApplying(true)}>
+                  Подать заявку снова
+                </Button>
+              </div>
+            ) : applying || !myReg ? (
+              applying ? (
+                <EventApplicationForm
+                  submitting={registering}
+                  initial={myReg}
+                  onSubmit={(app) =>
+                    register(app, { onSuccess: () => setApplying(false) })
+                  }
+                  onCancel={() => setApplying(false)}
+                />
               ) : (
-                'Зарегистрироваться'
-              )}
-            </Button>
-            <p className="text-xs text-muted-foreground text-center mt-2">
+                <Button
+                  variant="gold"
+                  className="w-full"
+                  disabled={isFull || event.status === 'COMPLETED'}
+                  onClick={() => setApplying(true)}
+                >
+                  {isFull ? 'Мест нет' : event.status === 'COMPLETED' ? 'Регистрация закрыта' : 'Подать заявку'}
+                </Button>
+              )
+            ) : null}
+            <p className="text-xs text-muted-foreground text-center mt-3">
               {event.registrationCount}
-              {event.maxParticipants ? ` / ${event.maxParticipants}` : ''} зарегистрировано
+              {event.maxParticipants ? ` / ${event.maxParticipants}` : ''} зачислено
             </p>
           </div>
 

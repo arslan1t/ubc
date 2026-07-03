@@ -5,12 +5,16 @@ import {
   IsDateString,
   IsNumber,
   IsArray,
+  IsInt,
+  IsIn,
   MinLength,
+  MaxLength,
   Min,
+  Max,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { EventStatus } from '@prisma/client';
+import { EventStatus, MatchStatus } from '@prisma/client';
 
 export class CreateEventDto {
   @ApiProperty()
@@ -116,4 +120,80 @@ export class UpdateEventDto extends CreateEventDto {
   @IsString()
   @IsOptional()
   declare location: string;
+}
+
+export class RegisterEventDto {
+  @ApiPropertyOptional({ description: 'Рост, см' })
+  @IsInt()
+  @Min(100)
+  @Max(250)
+  @IsOptional()
+  @Type(() => Number)
+  height?: number;
+
+  @ApiPropertyOptional({ description: 'Вес, кг' })
+  @IsInt()
+  @Min(30)
+  @Max(200)
+  @IsOptional()
+  @Type(() => Number)
+  weight?: number;
+
+  @ApiPropertyOptional({ description: 'Возраст' })
+  @IsInt()
+  @Min(10)
+  @Max(80)
+  @IsOptional()
+  @Type(() => Number)
+  age?: number;
+
+  @ApiPropertyOptional({ description: 'Ссылка на видео-хайлайт' })
+  @IsString()
+  @MaxLength(500)
+  @IsOptional()
+  highlightUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Instagram username' })
+  @IsString()
+  @MaxLength(60)
+  @IsOptional()
+  instagram?: string;
+}
+
+export class ReviewRegistrationDto {
+  @ApiProperty({ enum: ['APPROVED', 'REJECTED'] })
+  @IsIn(['APPROVED', 'REJECTED'])
+  status: 'APPROVED' | 'REJECTED';
+
+  @ApiPropertyOptional()
+  @IsString()
+  @MaxLength(500)
+  @IsOptional()
+  note?: string;
+}
+
+export class UpdateMatchDto {
+  @ApiPropertyOptional()
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  @Type(() => Number)
+  score1?: number;
+
+  @ApiPropertyOptional()
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  @Type(() => Number)
+  score2?: number;
+
+  @ApiPropertyOptional({ enum: MatchStatus })
+  @IsEnum(MatchStatus)
+  @IsOptional()
+  status?: MatchStatus;
+
+  @ApiPropertyOptional({ description: 'id победителя (обязателен при status=COMPLETED)' })
+  @IsString()
+  @IsOptional()
+  winnerId?: string;
 }

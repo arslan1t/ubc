@@ -110,9 +110,31 @@ enum NotificationType {
   SUBMISSION_REJECTED
   SUBMISSION_CHANGES_REQUESTED
   EVENT_REGISTRATION
+  EVENT_REGISTRATION_APPROVED
+  EVENT_REGISTRATION_REJECTED
   EVENT_UPDATE
   PICKUP_GAME_UPDATE
+  GIVEAWAY_ENTRY_APPROVED
+  GIVEAWAY_ENTRY_REJECTED
+  GIVEAWAY_WON
   ANNOUNCEMENT
+}
+
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  COMPLETED
+}
+
+enum GiveawayStatus {
+  OPEN
+  COMPLETED
 }
 
 // ─────────────────────────────────────────────
@@ -151,6 +173,10 @@ model User {
   submissions          Submission[] @relation("SubmittedBy")
   reviewedSubmissions  Submission[] @relation("ReviewedBy")
   eventRegistrations   EventRegistration[]
+  matchesAsPlayer1     EventMatch[] @relation("MatchPlayer1")
+  matchesAsPlayer2     EventMatch[] @relation("MatchPlayer2")
+  giveawayEntries      GiveawayEntry[]
+  giveawaysWon         Giveaway[]   @relation("GiveawayWinner")
   notifications        Notification[]
   auditLogs            AuditLog[]
 
@@ -431,6 +457,7 @@ model Event {
 
   gallery       EventImage[]
   registrations EventRegistration[]
+  matches       EventMatch[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -463,11 +490,86 @@ model EventRegistration {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // 1v1 application — reviewed by an admin before the player is enrolled
+  status       RegistrationStatus @default(PENDING)
+  height       Int?
+  weight       Int?
+  age          Int?
+  highlightUrl String?
+  instagram    String?
+  reviewNote   String?
+
   createdAt DateTime @default(now())
 
   @@unique([eventId, userId])
   @@index([eventId])
+  @@index([eventId, status])
   @@map("event_registrations")
+}
+
+model EventMatch {
+  id       String      @id @default(uuid())
+  eventId  String
+  event    Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  round    Int // 1 = 1/16 finals (32 players), 5 = final
+  slot     Int // position within the round, 0-based
+  player1Id String?
+  player1   User?      @relation("MatchPlayer1", fields: [player1Id], references: [id], onDelete: SetNull)
+  player2Id String?
+  player2   User?      @relation("MatchPlayer2", fields: [player2Id], references: [id], onDelete: SetNull)
+  score1   Int?
+  score2   Int?
+  winnerId String?
+  status   MatchStatus @default(SCHEDULED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, round, slot])
+  @@index([eventId])
+  @@map("event_matches")
+}
+
+// ─────────────────────────────────────────────
+// GIVEAWAYS
+// ─────────────────────────────────────────────
+
+model Giveaway {
+  id          String         @id @default(uuid())
+  title       String
+  description String?
+  conditions  String? // условия участия — что нужно сделать, чтобы попасть в пул
+  prize       String
+  coverUrl    String?
+  status      GiveawayStatus @default(OPEN)
+  winnerId    String?
+  winner      User?          @relation("GiveawayWinner", fields: [winnerId], references: [id], onDelete: SetNull)
+  drawnAt     DateTime?
+
+  entries GiveawayEntry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@map("giveaways")
+}
+
+model GiveawayEntry {
+  id         String             @id @default(uuid())
+  giveawayId String
+  giveaway   Giveaway           @relation(fields: [giveawayId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status     RegistrationStatus @default(PENDING)
+  comment    String? // как выполнил условия (ссылка/ник) — смотрит админ при проверке
+
+  createdAt DateTime @default(now())
+
+  @@unique([giveawayId, userId])
+  @@index([giveawayId])
+  @@index([giveawayId, status])
+  @@map("giveaway_entries")
 }
 
 // ─────────────────────────────────────────────

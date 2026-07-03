@@ -47,28 +47,61 @@ export function NewsArticleContent({ slug }: { slug: string }) {
   }
 
   return (
-    <article className="container-page py-10 max-w-3xl">
-      {/* Назад */}
-      <Link
-        href="/news"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Все новости
-      </Link>
+    <article className="pb-10">
+      {/* Editorial hero — full-bleed cover with the headline on top */}
+      {article.coverUrl ? (
+        <section className="relative overflow-hidden mb-10">
+          <div className="relative aspect-[16/9] md:aspect-[21/9] max-h-[520px] w-full">
+            <Image
+              src={article.coverUrl}
+              alt={article.title}
+              fill
+              className="object-cover"
+              priority
+              sizes="100vw"
+            />
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/30 to-transparent" />
+          </div>
+          <div className="absolute inset-0 flex flex-col justify-end">
+            <div className="container-page max-w-3xl pb-6 md:pb-10">
+              <Link
+                href="/news"
+                className="inline-flex items-center gap-2 text-xs text-white/60 hover:text-primary mb-4 transition-colors"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Все новости
+              </Link>
+              <div className="mb-3">
+                <Badge variant="gold" className="text-xs uppercase tracking-wider">
+                  {CATEGORY_LABELS[article.category] ?? article.category}
+                </Badge>
+              </div>
+              <h1 className="font-display font-black text-2xl md:text-4xl lg:text-5xl leading-tight text-white drop-shadow-lg">
+                {article.title}
+              </h1>
+            </div>
+          </div>
+        </section>
+      ) : (
+        <div className="container-page max-w-3xl pt-10">
+          <Link
+            href="/news"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" /> Все новости
+          </Link>
+          <div className="mb-4">
+            <Badge variant="gold" className="text-xs uppercase tracking-wider">
+              {CATEGORY_LABELS[article.category] ?? article.category}
+            </Badge>
+          </div>
+          <h1 className="font-display font-black text-3xl md:text-4xl lg:text-5xl leading-tight mb-6">
+            {article.title}
+          </h1>
+        </div>
+      )}
 
-      {/* Категория */}
-      <div className="mb-4">
-        <Badge variant="gold" className="text-xs uppercase tracking-wider">
-          {CATEGORY_LABELS[article.category] ?? article.category}
-        </Badge>
-      </div>
-
-      {/* Заголовок */}
-      <h1 className="font-display font-black text-3xl md:text-4xl lg:text-5xl leading-tight mb-6">
-        {article.title}
-      </h1>
-
+      <div className="container-page max-w-3xl">
       {/* Мета */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground mb-8 pb-8 border-b border-border/60">
         <Link href={`/players/${article.author.id}`} className="flex items-center gap-2 group">
@@ -88,20 +121,6 @@ export function NewsArticleContent({ slug }: { slug: string }) {
           <span>{article.viewCount} просмотров</span>
         </div>
       </div>
-
-      {/* Обложка */}
-      {article.coverUrl && (
-        <div className="relative aspect-video rounded-2xl overflow-hidden mb-8 border border-border/40">
-          <Image
-            src={article.coverUrl}
-            alt={article.title}
-            fill
-            className="object-cover"
-            priority
-            sizes="(max-width: 768px) 100vw, 768px"
-          />
-        </div>
-      )}
 
       {/* Лид */}
       {article.excerpt && (
@@ -153,6 +172,7 @@ export function NewsArticleContent({ slug }: { slug: string }) {
           </div>
         </div>
       )}
+      </div>
     </article>
   );
 }
