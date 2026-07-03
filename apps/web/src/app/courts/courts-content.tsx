@@ -1,5 +1,6 @@
 'use client';
 
+import { PageHero } from '@/components/shared/page-hero';
 import Link from 'next/link';
 import { Plus, Map } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
@@ -21,31 +22,20 @@ export function CourtsPageContent() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <section className="relative overflow-hidden border-b border-border/60">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,hsl(43_85%_53%/0.07)_0%,transparent_70%)]" />
-        <div className="absolute inset-0 bg-court-grid opacity-40" />
-        <div className="container-page relative py-12 md:py-16 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">Площадки</p>
-            <h1 className="font-display font-black text-4xl md:text-5xl leading-none mb-2">
-              Баскетбольные
-              <span className="block" style={{
-                background: 'linear-gradient(135deg, hsl(43 85% 65%), hsl(43 85% 45%))',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}>корты</span>
-            </h1>
-            <p className="text-muted-foreground">Все площадки Узбекистана на одной карте</p>
-          </div>
+      <PageHero
+        eyebrow="Площадки"
+        title="Баскетбольные"
+        goldTitle="корты"
+        subtitle="Все площадки Узбекистана на одной карте"
+        action={
           <Link
             href="/courts/suggest"
             className="shrink-0 inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_0_20px_hsl(43_85%_53%/0.3)] hover:shadow-[0_0_30px_hsl(43_85%_53%/0.45)]"
           >
             <Plus className="w-4 h-4" /> Предложить корт
           </Link>
-        </div>
-      </section>
+        }
+      />
 
       <div className="container-page py-8 space-y-8">
         {/* Map — only when a real Yandex key is configured */}

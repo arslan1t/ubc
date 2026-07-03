@@ -110,7 +110,7 @@ export class TelegramBotService implements OnModuleInit {
   }
 
   private async handleStart(chatId: string, token?: string, fromId?: string | null) {
-    const frontendUrl = this.config.get<string>('FRONTEND_URL', 'https://ubc-web-azure.vercel.app');
+    const frontendUrl = this.config.get<string>('FRONTEND_URL', 'https://www.ubculture.uz');
 
     if (!token) {
       await this.sendMessage(
@@ -180,7 +180,7 @@ export class TelegramBotService implements OnModuleInit {
     });
 
     if (!session || session.expiresAt < new Date()) {
-      const frontendUrl = this.config.get<string>('FRONTEND_URL', 'https://ubc-web-azure.vercel.app');
+      const frontendUrl = this.config.get<string>('FRONTEND_URL', 'https://www.ubculture.uz');
       await this.sendMessage(
         chatId,
         `⏰ Сессия входа устарела.\n\nВернись на ${frontendUrl}/auth/login и нажми «Войти через Telegram» ещё раз.`,

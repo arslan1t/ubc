@@ -85,15 +85,24 @@ export class NewsController {
   @ApiBearerAuth()
   @Roles(UserRole.ADMIN, UserRole.MODERATOR)
   @Post(':id/cover')
-  @ApiOperation({ summary: 'Загрузить обложку статьи (moderator+)' })
-  async uploadCover(@Param('id') id: string, @Req() req: FastifyRequest) {
+  @ApiOperation({ summary: 'Загрузить обложку/заглавное изображение статьи (moderator+, ?kind=banner)' })
+  async uploadCover(
+    @Param('id') id: string,
+    @Req() req: FastifyRequest,
+    @Query('kind') kind?: string,
+  ) {
     const file = await req.file();
     if (!file) throw new BadRequestException('Файл не найден в запросе');
     if (!file.mimetype?.startsWith('image/')) {
       throw new BadRequestException('Допускаются только изображения');
     }
     const buffer = await file.toBuffer();
-    return this.newsService.uploadCover(id, buffer, file.mimetype);
+    return this.newsService.uploadCover(
+      id,
+      buffer,
+      file.mimetype,
+      kind === 'banner' ? 'banner' : 'cover',
+    );
   }
 
   @ApiBearerAuth()

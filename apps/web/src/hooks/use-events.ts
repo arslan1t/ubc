@@ -12,6 +12,7 @@ export interface EventListItem {
   startDate: string;
   location: string;
   coverUrl: string | null;
+  bannerUrl?: string | null;
   maxParticipants: number | null;
   registrationCount: number;
 }
@@ -179,6 +180,7 @@ export interface EventFormValues {
   location: string;
   address?: string;
   coverUrl?: string;
+  bannerUrl?: string;
   description?: string;
   rules?: string;
   prizePool?: string;
@@ -232,15 +234,15 @@ export function useDeleteEvent() {
 export function useUploadEventCover() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, file }: { id: string; file: File }) => {
+    mutationFn: ({ id, file, kind = 'cover' }: { id: string; file: File; kind?: 'cover' | 'banner' }) => {
       const fd = new FormData();
       fd.append('file', file);
       return api
-        .post(`/events/${id}/cover`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+        .post(`/events/${id}/cover?kind=${kind}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
         .then((r) => r.data);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['events'] }),
-    onError: () => toast.error('Не удалось загрузить обложку'),
+    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Не удалось загрузить изображение'),
   });
 }
 

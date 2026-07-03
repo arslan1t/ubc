@@ -102,8 +102,8 @@ export function GiveawayDetailContent({ id }: { id: string }) {
       {/* Hero */}
       <div className="rounded-2xl border border-border/60 bg-card overflow-hidden mb-6">
         <div className="relative aspect-[21/9] bg-gradient-to-br from-primary/20 to-primary/5">
-          {g.coverUrl ? (
-            <Image src={g.coverUrl} alt={g.title} fill className="object-cover" priority />
+          {(g.bannerUrl ?? g.coverUrl) ? (
+            <Image src={(g.bannerUrl ?? g.coverUrl)!} alt={g.title} fill className="object-cover" priority quality={90} sizes="(max-width: 768px) 100vw, 768px" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
               <Gift className="w-16 h-16 text-primary/40" />

@@ -49,15 +49,16 @@ export function NewsArticleContent({ slug }: { slug: string }) {
   return (
     <article className="pb-10">
       {/* Editorial hero — full-bleed cover with the headline on top */}
-      {article.coverUrl ? (
+      {(article.bannerUrl ?? article.coverUrl) ? (
         <section className="relative overflow-hidden mb-10">
           <div className="relative aspect-[16/9] md:aspect-[21/9] max-h-[520px] w-full">
             <Image
-              src={article.coverUrl}
+              src={article.bannerUrl ?? article.coverUrl}
               alt={article.title}
               fill
               className="object-cover"
               priority
+              quality={90}
               sizes="100vw"
             />
             <div className="absolute inset-0 bg-black/40" />

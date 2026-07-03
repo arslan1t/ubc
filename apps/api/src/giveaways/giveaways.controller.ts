@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   Req,
   HttpCode,
   HttpStatus,
@@ -95,15 +96,24 @@ export class GiveawaysController {
   @ApiBearerAuth()
   @Roles(UserRole.ADMIN)
   @Post(':id/cover')
-  @ApiOperation({ summary: 'Загрузить обложку розыгрыша (admin)' })
-  async uploadCover(@Param('id') id: string, @Req() req: FastifyRequest) {
+  @ApiOperation({ summary: 'Загрузить обложку/заглавное изображение розыгрыша (admin, ?kind=banner)' })
+  async uploadCover(
+    @Param('id') id: string,
+    @Req() req: FastifyRequest,
+    @Query('kind') kind?: string,
+  ) {
     const file = await req.file();
     if (!file) throw new BadRequestException('Файл не найден в запросе');
     if (!file.mimetype?.startsWith('image/')) {
       throw new BadRequestException('Допускаются только изображения');
     }
     const buffer = await file.toBuffer();
-    return this.giveawaysService.uploadCover(id, buffer, file.mimetype);
+    return this.giveawaysService.uploadCover(
+      id,
+      buffer,
+      file.mimetype,
+      kind === 'banner' ? 'banner' : 'cover',
+    );
   }
 
   @ApiBearerAuth()

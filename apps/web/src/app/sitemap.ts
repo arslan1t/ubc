@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const BASE_URL = 'https://ubc-web-azure.vercel.app';
+const BASE_URL = 'https://www.ubculture.uz';
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
 
 async function fetchSlugs(path: string, extract: (json: any) => string[]): Promise<string[]> {

@@ -19,6 +19,7 @@ export interface GiveawayListItem {
   conditions: string | null;
   prize: string;
   coverUrl: string | null;
+  bannerUrl?: string | null;
   status: GiveawayStatus;
   winnerId: string | null;
   winner: GiveawayUser | null;
@@ -143,6 +144,7 @@ export interface GiveawayFormValues {
   description?: string;
   conditions?: string;
   coverUrl?: string;
+  bannerUrl?: string;
 }
 
 export function useCreateGiveaway() {
@@ -185,15 +187,15 @@ export function useDeleteGiveaway() {
 export function useUploadGiveawayCover() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, file }: { id: string; file: File }) => {
+    mutationFn: ({ id, file, kind = 'cover' }: { id: string; file: File; kind?: 'cover' | 'banner' }) => {
       const fd = new FormData();
       fd.append('file', file);
       return api
-        .post(`/giveaways/${id}/cover`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+        .post(`/giveaways/${id}/cover?kind=${kind}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
         .then((r) => r.data);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['giveaways'] }),
-    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Не удалось загрузить обложку'),
+    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Не удалось загрузить изображение'),
   });
 }
 

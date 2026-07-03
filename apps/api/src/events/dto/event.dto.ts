@@ -62,6 +62,11 @@ export class CreateEventDto {
   @IsOptional()
   coverUrl?: string;
 
+  @ApiPropertyOptional({ description: 'Заглавное изображение страницы турнира' })
+  @IsString()
+  @IsOptional()
+  bannerUrl?: string;
+
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
