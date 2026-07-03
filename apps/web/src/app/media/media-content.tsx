@@ -5,6 +5,7 @@ import { ExternalLink, Youtube, Instagram, FolderOpen } from 'lucide-react';
 import { useMedia } from '@/hooks/use-media';
 import { MediaCard } from '@/components/media/media-card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PageHero } from '@/components/shared/page-hero';
 import { cn } from '@/lib/utils';
 import { QueryError } from '@/components/ui/query-error';
 
@@ -60,14 +61,14 @@ export function MediaPageContent() {
   };
 
   return (
-    <div className="container-page py-8">
-      <div className="mb-8">
-        <h1 className="font-display font-bold text-3xl md:text-4xl mb-2">
-          <span className="text-primary">Медиа</span>
-        </h1>
-        <p className="text-muted-foreground">Видео, фото, интервью и подкасты</p>
-      </div>
+    <div className="min-h-screen">
+      <PageHero
+        eyebrow="Контент"
+        goldTitle="Медиа"
+        subtitle="Видео, фото, интервью и подкасты"
+      />
 
+      <div className="container-page py-8">
       {/* Where the content lives */}
       <div className="grid sm:grid-cols-3 gap-3 mb-8">
         {PLATFORMS.map(({ name, description, href, icon: Icon, accent, border, bg }) => (
@@ -131,6 +132,7 @@ export function MediaPageContent() {
           <p className="text-muted-foreground">Нет медиа</p>
         </div>
       )}
+      </div>
     </div>
   );
 }

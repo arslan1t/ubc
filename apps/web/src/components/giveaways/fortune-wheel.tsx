@@ -87,7 +87,7 @@ export function FortuneWheel({
   if (!segments.length) return null;
 
   return (
-    <div className="relative mx-auto" style={{ width: size, height: size }}>
+    <div className="relative mx-auto w-full" style={{ maxWidth: size }}>
       {/* Pointer */}
       <div className="absolute left-1/2 -top-1 -translate-x-1/2 z-10">
         <div
@@ -103,8 +103,7 @@ export function FortuneWheel({
 
       <svg
         viewBox="0 0 320 320"
-        width={size}
-        height={size}
+        className="w-full h-auto block"
         style={{
           transform: `rotate(${rotation}deg)`,
           transition: animating ? 'transform 6s cubic-bezier(0.12, 0.8, 0.16, 1)' : 'none',

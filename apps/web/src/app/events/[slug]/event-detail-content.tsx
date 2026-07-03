@@ -304,12 +304,12 @@ export function EventDetailContent({ slug }: { slug: string }) {
             <Section icon={MapPin} title="Локация">
               <p className="text-sm text-muted-foreground mb-3">{event.address}</p>
               <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.address)}`}
+                href={`https://yandex.uz/maps/?text=${encodeURIComponent(event.address)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80"
               >
-                Открыть в Google Maps <ExternalLink className="w-3.5 h-3.5" />
+                Открыть в Яндекс.Картах <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </Section>
           )}
