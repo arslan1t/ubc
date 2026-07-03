@@ -125,6 +125,18 @@ export function useReviewGiveawayEntry(id: string) {
   });
 }
 
+export function useDeleteGiveawayEntry(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (entryId: string) => api.delete(`/giveaways/${id}/entries/${entryId}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['giveaways', id] });
+      toast.success('Заявка удалена');
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Не удалось удалить заявку'),
+  });
+}
+
 export interface GiveawayFormValues {
   title: string;
   prize: string;

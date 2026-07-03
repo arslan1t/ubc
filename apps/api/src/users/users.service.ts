@@ -16,11 +16,17 @@ const USER_ADMIN_SELECT = {
   phone: true,
   firstName: true,
   lastName: true,
+  telegramUsername: true,
+  instagramUsername: true,
+  city: true,
+  bio: true,
+  provider: true,
   avatarUrl: true,
   role: true,
   reputation: true,
   isActive: true,
   createdAt: true,
+  updatedAt: true,
 };
 
 const USER_SELECT = {
@@ -222,7 +228,14 @@ export class UsersService {
         select: {
           ...USER_ADMIN_SELECT,
           _count: {
-            select: { organizedRuns: true, reviews: true, submissions: true },
+            select: {
+              organizedRuns: true,
+              participations: true,
+              reviews: true,
+              submissions: true,
+              eventRegistrations: true,
+              giveawayEntries: true,
+            },
           },
         },
       }),

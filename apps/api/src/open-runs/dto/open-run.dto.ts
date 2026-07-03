@@ -70,6 +70,72 @@ export class CreateOpenRunDto {
   skillLevel?: SkillLevel;
 }
 
+export class UpdateOpenRunDto {
+  @ApiPropertyOptional()
+  @IsUUID()
+  @IsOptional()
+  courtId?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @MinLength(2)
+  @IsOptional()
+  title?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @ApiPropertyOptional({ example: '2025-08-15' })
+  @IsDateString()
+  @IsOptional()
+  date?: string;
+
+  @ApiPropertyOptional({ example: '18:00' })
+  @IsString()
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: 'Неверный формат времени (HH:MM)' })
+  @IsOptional()
+  startTime?: string;
+
+  @ApiPropertyOptional({ example: '20:00' })
+  @IsString()
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: 'Неверный формат времени (HH:MM)' })
+  @IsOptional()
+  endTime?: string;
+
+  @ApiPropertyOptional({ minimum: 2, maximum: 50 })
+  @IsNumber()
+  @Min(2)
+  @Max(50)
+  @IsOptional()
+  @Type(() => Number)
+  maxParticipants?: number;
+
+  @ApiPropertyOptional()
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  @Type(() => Number)
+  fee?: number;
+
+  @ApiPropertyOptional()
+  @IsBoolean()
+  @IsOptional()
+  @Type(() => Boolean)
+  isPublic?: boolean;
+
+  @ApiPropertyOptional({ enum: SkillLevel })
+  @IsEnum(SkillLevel)
+  @IsOptional()
+  skillLevel?: SkillLevel;
+
+  @ApiPropertyOptional({ enum: ['OPEN', 'CLOSED', 'COMPLETED', 'CANCELLED'] })
+  @IsString()
+  @IsOptional()
+  status?: 'OPEN' | 'CLOSED' | 'COMPLETED' | 'CANCELLED';
+}
+
 export class OpenRunFiltersDto {
   @ApiPropertyOptional()
   @IsString()

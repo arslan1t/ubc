@@ -14,6 +14,7 @@ import {
   useUploadEventCover,
   useEventRegistrationsAdmin,
   useReviewRegistration,
+  useDeleteRegistration,
   useBracket,
   useGenerateBracket,
   useResetBracket,
@@ -202,11 +203,17 @@ const REG_STATUS_META: Record<string, { label: string; cls: string }> = {
 function RegistrationsPanel({ eventId, onClose }: { eventId: string; onClose: () => void }) {
   const { data, isLoading } = useEventRegistrationsAdmin(eventId);
   const review = useReviewRegistration(eventId);
+  const deleteReg = useDeleteRegistration(eventId);
 
   const handleReject = (regId: string) => {
     const note = window.prompt('Причина отказа (увидит игрок):');
     if (note === null) return;
     review.mutate({ regId, status: 'REJECTED', note: note || undefined });
+  };
+
+  const handleDelete = (r: any) => {
+    if (!window.confirm(`Удалить заявку ${r.user.firstName} ${r.user.lastName}? Игрок сможет подать новую.`)) return;
+    deleteReg.mutate(r.id);
   };
 
   const pending = data?.filter((r) => r.status === 'PENDING') ?? [];
@@ -230,26 +237,36 @@ function RegistrationsPanel({ eventId, onClose }: { eventId: string; onClose: ()
           <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold', meta.cls)}>
             {meta.label}
           </span>
-          {r.status === 'PENDING' && (
-            <div className="flex gap-1 shrink-0">
-              <button
-                onClick={() => review.mutate({ regId: r.id, status: 'APPROVED' })}
-                disabled={review.isPending}
-                className="p-1.5 rounded-lg bg-emerald-400/10 text-emerald-400 hover:bg-emerald-400/20 transition-colors"
-                title="Зачислить"
-              >
-                <Check className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => handleReject(r.id)}
-                disabled={review.isPending}
-                className="p-1.5 rounded-lg bg-red-400/10 text-red-400 hover:bg-red-400/20 transition-colors"
-                title="Отклонить"
-              >
-                <Ban className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+          <div className="flex gap-1 shrink-0">
+            {r.status === 'PENDING' && (
+              <>
+                <button
+                  onClick={() => review.mutate({ regId: r.id, status: 'APPROVED' })}
+                  disabled={review.isPending}
+                  className="p-1.5 rounded-lg bg-emerald-400/10 text-emerald-400 hover:bg-emerald-400/20 transition-colors"
+                  title="Зачислить"
+                >
+                  <Check className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleReject(r.id)}
+                  disabled={review.isPending}
+                  className="p-1.5 rounded-lg bg-red-400/10 text-red-400 hover:bg-red-400/20 transition-colors"
+                  title="Отклонить"
+                >
+                  <Ban className="w-4 h-4" />
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => handleDelete(r)}
+              disabled={deleteReg.isPending}
+              className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+              title="Удалить заявку"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground pl-10">
           {r.height && <span>Рост: <b className="text-foreground">{r.height} см</b></span>}

@@ -245,6 +245,15 @@ export class EventsService implements OnModuleInit {
     return updated;
   }
 
+  /** Admin removes a registration entirely (spam, duplicates, player dropped out). */
+  async deleteRegistration(eventId: string, registrationId: string) {
+    const reg = await this.prisma.eventRegistration.findUnique({
+      where: { id: registrationId },
+    });
+    if (!reg || reg.eventId !== eventId) throw new NotFoundException('Заявка не найдена');
+    await this.prisma.eventRegistration.delete({ where: { id: registrationId } });
+  }
+
   // ─── Bracket ───
 
   /** Build the bracket from approved players: shuffle, seed round 1, auto-advance byes. */

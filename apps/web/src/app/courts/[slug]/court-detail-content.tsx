@@ -60,77 +60,86 @@ export function CourtDetailContent({ slug }: { slug: string }) {
         <ReportButton targetType="court" targetId={court.id} targetName={court.name} />
       </div>
 
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex flex-wrap items-start justify-between gap-4 mb-3">
-          <div>
-            <h1 className="font-display font-bold text-3xl md:text-4xl">
-              {court.name}
-            </h1>
-            <div className="flex items-center gap-2 mt-2 text-muted-foreground">
-              <MapPin className="w-4 h-4 shrink-0" />
-              <span>{court.address}, {court.city}</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant={court.isFree ? 'success' : 'outline'} className="text-sm px-3 py-1">
+      {/* Hero: заголовок и мета слева, фотографии справа, информация ниже */}
+      <div className="grid lg:grid-cols-2 gap-6 mb-10 items-stretch">
+        <div className="flex flex-col justify-center rounded-2xl glass-content-card p-6 md:p-8">
+          <div className="flex items-center gap-2 flex-wrap mb-4">
+            <Badge variant={court.isFree ? 'success' : 'outline'} className="text-xs px-2.5 py-0.5">
               {court.isFree ? 'Бесплатный' : 'Платный'}
             </Badge>
-            <Badge variant="outline" className="text-sm px-3 py-1 gap-1.5">
-              {court.type === 'INDOOR' ? <Building className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
+            <Badge variant="outline" className="text-xs px-2.5 py-0.5 gap-1.5">
+              {court.type === 'INDOOR' ? <Building className="w-3 h-3" /> : <Sun className="w-3 h-3" />}
               {court.type === 'INDOOR' ? 'Крытый' : 'Открытый'}
             </Badge>
+            {court.isVerified && (
+              <Badge variant="gold" className="text-xs px-2.5 py-0.5">Проверен UBC</Badge>
+            )}
           </div>
+
+          <h1 className="font-display font-black text-3xl md:text-4xl leading-tight mb-3">
+            {court.name}
+          </h1>
+          <div className="flex items-center gap-2 text-muted-foreground mb-4">
+            <MapPin className="w-4 h-4 shrink-0" />
+            <span>{court.address}, {court.city}</span>
+          </div>
+
+          {court.reviewCount > 0 && (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-4 h-4 ${i < Math.round(court.rating) ? 'text-primary fill-primary' : 'text-muted-foreground'}`}
+                  />
+                ))}
+              </div>
+              <span className="font-semibold">{court.rating.toFixed(1)}</span>
+              <span className="text-muted-foreground text-sm">({court.reviewCount} отзывов)</span>
+            </div>
+          )}
         </div>
 
-        {court.reviewCount > 0 && (
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className={`w-4 h-4 ${i < Math.round(court.rating) ? 'text-primary fill-primary' : 'text-muted-foreground'}`}
-                />
-              ))}
-            </div>
-            <span className="font-semibold">{court.rating.toFixed(1)}</span>
-            <span className="text-muted-foreground text-sm">({court.reviewCount} отзывов)</span>
-          </div>
-        )}
-      </div>
-
-      {/* Images */}
-      {court.images?.length > 0 && (
-        <div className="mb-8">
-          <div className="grid grid-cols-4 gap-2 rounded-xl overflow-hidden" style={{ maxHeight: '450px' }}>
-            <div className={`${court.images.length > 1 ? 'col-span-3' : 'col-span-4'} relative`}>
+        {/* Photos */}
+        {court.images?.length > 0 ? (
+          <div className="grid grid-cols-3 grid-rows-2 gap-2 rounded-2xl overflow-hidden min-h-[260px] lg:min-h-[320px]">
+            <div className={`${court.images.length > 1 ? 'col-span-2' : 'col-span-3'} row-span-2 relative`}>
               <Image
                 src={primaryImage?.url ?? primaryImage?.thumbnailUrl}
                 alt={court.name}
                 fill
                 className="object-cover"
-                sizes="(max-width: 768px) 100vw, 75vw"
+                sizes="(max-width: 1024px) 100vw, 35vw"
                 priority
               />
             </div>
-            {court.images.length > 1 && (
-              <div className="col-span-1 flex flex-col gap-2">
-                {court.images.slice(1, 3).map((img: any) => (
-                  <div key={img.id} className="relative flex-1">
-                    <Image
-                      src={img.thumbnailUrl}
-                      alt={court.name}
-                      fill
-                      className="object-cover"
-                      sizes="25vw"
-                    />
-                  </div>
-                ))}
+            {court.images.slice(1, 3).map((img: any) => (
+              <div key={img.id} className="relative col-span-1 row-span-1">
+                <Image
+                  src={img.mediumUrl ?? img.thumbnailUrl}
+                  alt={court.name}
+                  fill
+                  className="object-cover"
+                  sizes="15vw"
+                />
+              </div>
+            ))}
+            {court.images.length === 2 && (
+              <div className="col-span-1 row-span-1 bg-secondary/40 flex items-center justify-center">
+                <span className="font-display font-black text-xl text-muted-foreground/15 uppercase">UBC</span>
               </div>
             )}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="rounded-2xl border border-dashed border-border/60 bg-card/20 flex flex-col items-center justify-center gap-2 min-h-[260px] lg:min-h-[320px] text-center p-6">
+            <span className="font-display font-black text-3xl text-muted-foreground/15 uppercase tracking-widest">UBC</span>
+            <p className="text-sm text-muted-foreground">Фотографий пока нет</p>
+            <p className="text-xs text-muted-foreground/70">
+              Оставь отзыв с фото ниже — после проверки они появятся здесь
+            </p>
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Info */}

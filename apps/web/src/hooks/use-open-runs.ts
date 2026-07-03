@@ -73,6 +73,43 @@ export function useCancelOpenRun() {
   });
 }
 
+export interface OpenRunUpdateDto {
+  courtId?: string;
+  title?: string;
+  description?: string;
+  date?: string;
+  startTime?: string;
+  endTime?: string;
+  maxParticipants?: number;
+  fee?: number;
+  isPublic?: boolean;
+  skillLevel?: string;
+  status?: 'OPEN' | 'CLOSED' | 'COMPLETED' | 'CANCELLED';
+}
+
+export function useUpdateOpenRun() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, dto }: { id: string; dto: OpenRunUpdateDto }) =>
+      api.patch(`/open-runs/${id}`, dto).then((r) => r.data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: openRunKeys.all });
+      queryClient.invalidateQueries({ queryKey: openRunKeys.detail(id) });
+    },
+  });
+}
+
+export function useRemoveParticipant() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ runId, participantId }: { runId: string; participantId: string }) =>
+      api.delete(`/open-runs/${runId}/participants/${participantId}`),
+    onSuccess: (_, { runId }) => {
+      queryClient.invalidateQueries({ queryKey: openRunKeys.detail(runId) });
+    },
+  });
+}
+
 // ─── Admin ───
 
 export function useAdminOpenRuns(filters: Record<string, any> = {}) {

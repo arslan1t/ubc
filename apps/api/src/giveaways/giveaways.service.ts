@@ -188,6 +188,13 @@ export class GiveawaysService {
     return updated;
   }
 
+  /** Admin removes an entry entirely. */
+  async deleteEntry(giveawayId: string, entryId: string) {
+    const entry = await this.prisma.giveawayEntry.findUnique({ where: { id: entryId } });
+    if (!entry || entry.giveawayId !== giveawayId) throw new NotFoundException('Заявка не найдена');
+    await this.prisma.giveawayEntry.delete({ where: { id: entryId } });
+  }
+
   /** Server-side draw with crypto randomness — the wheel animation lands on this winner. */
   async draw(id: string) {
     const giveaway = await this.prisma.giveaway.findUnique({

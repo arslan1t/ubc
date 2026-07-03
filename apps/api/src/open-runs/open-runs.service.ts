@@ -7,8 +7,9 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
-import { OpenRunStatus, ParticipantStatus } from '@prisma/client';
-import { CreateOpenRunDto, OpenRunFiltersDto } from './dto/open-run.dto';
+import { OpenRunStatus, ParticipantStatus, UserRole } from '@prisma/client';
+import { CreateOpenRunDto, UpdateOpenRunDto, OpenRunFiltersDto } from './dto/open-run.dto';
+import { ROLE_RANK } from '../common/guards/roles.guard';
 
 const COUNTED_STATUSES = [ParticipantStatus.APPROVED, ParticipantStatus.WAITLISTED];
 
@@ -162,6 +163,74 @@ export class OpenRunsService {
     });
 
     return this.formatRun(run);
+  }
+
+  /** Full edit — organizer of the run or moderator/admin. */
+  async update(id: string, dto: UpdateOpenRunDto, actor: { id: string; role: UserRole }) {
+    const run = await this.getRunOrFail(id);
+    const isStaff = (ROLE_RANK[actor.role] ?? 0) >= ROLE_RANK[UserRole.MODERATOR];
+    if (run.organizerId !== actor.id && !isStaff) throw new ForbiddenException();
+
+    if (dto.courtId && dto.courtId !== run.courtId) {
+      const court = await this.prisma.court.findUnique({ where: { id: dto.courtId } });
+      if (!court) throw new NotFoundException('Корт не найден');
+    }
+
+    const data: Record<string, unknown> = { ...dto };
+    if (dto.date) data.date = new Date(dto.date);
+    if (dto.status) data.status = dto.status as OpenRunStatus;
+
+    const updated = await this.prisma.openRun.update({
+      where: { id },
+      data,
+      include: OPEN_RUN_INCLUDE,
+    });
+    return this.formatRun(updated);
+  }
+
+  /** Organizer (or staff) kicks a participant out entirely; waitlist auto-promotes. */
+  async removeParticipant(
+    runId: string,
+    participantId: string,
+    actor: { id: string; role: UserRole },
+  ) {
+    const run = await this.getRunOrFail(runId);
+    const isStaff = (ROLE_RANK[actor.role] ?? 0) >= ROLE_RANK[UserRole.MODERATOR];
+    if (run.organizerId !== actor.id && !isStaff) throw new ForbiddenException();
+
+    const participant = await this.prisma.openRunParticipant.findUnique({
+      where: { id: participantId },
+    });
+    if (!participant || participant.openRunId !== runId) {
+      throw new NotFoundException('Участник не найден');
+    }
+
+    const freedSpot = participant.status === ParticipantStatus.APPROVED;
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.openRunParticipant.delete({ where: { id: participantId } });
+
+      if (freedSpot) {
+        const next = await tx.openRunParticipant.findFirst({
+          where: { openRunId: runId, status: ParticipantStatus.WAITLISTED },
+          orderBy: { createdAt: 'asc' },
+        });
+        if (next) {
+          await tx.openRunParticipant.update({
+            where: { id: next.id },
+            data: { status: ParticipantStatus.APPROVED },
+          });
+        }
+      }
+    });
+
+    await this.notifications.create(
+      participant.userId,
+      'PICKUP_GAME_UPDATE',
+      `Организатор убрал тебя из игры "${run.title ?? 'Pickup Game'}"`,
+      undefined,
+      `/pickup-games/${runId}`,
+    );
   }
 
   async cancel(id: string, userId: string) {

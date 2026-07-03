@@ -128,6 +128,15 @@ export class GiveawaysController {
 
   @ApiBearerAuth()
   @Roles(UserRole.ADMIN)
+  @Delete(':id/entries/:entryId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Удалить заявку участника (admin)' })
+  deleteEntry(@Param('id') id: string, @Param('entryId') entryId: string) {
+    return this.giveawaysService.deleteEntry(id, entryId);
+  }
+
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN)
   @Post(':id/draw')
   @ApiOperation({ summary: 'Крутануть колесо: случайный победитель из пула (admin)' })
   draw(@Param('id') id: string) {

@@ -42,7 +42,9 @@ export class StorageService {
   private readonly configured: boolean;
 
   constructor(private config: ConfigService) {
-    this.bucket = config.get<string>('R2_BUCKET', '');
+    // Render dashboard has the key as R2_BUCKET_NAME — accept both spellings.
+    this.bucket =
+      config.get<string>('R2_BUCKET', '') || config.get<string>('R2_BUCKET_NAME', '');
     this.publicUrl = config.get<string>('R2_PUBLIC_URL', '');
     const endpoint = config.get<string>('R2_ENDPOINT', '');
     const accessKeyId = config.get<string>('R2_ACCESS_KEY_ID', '');

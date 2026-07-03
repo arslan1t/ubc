@@ -153,6 +153,15 @@ export class EventsController {
     return this.eventsService.reviewRegistration(id, regId, dto.status, dto.note);
   }
 
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN)
+  @Delete(':id/registrations/:regId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Удалить заявку/участника (admin)' })
+  deleteRegistration(@Param('id') id: string, @Param('regId') regId: string) {
+    return this.eventsService.deleteRegistration(id, regId);
+  }
+
   // ─── Bracket ───
 
   @Public()
