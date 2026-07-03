@@ -15,6 +15,7 @@ const NAV_LINKS = [
   { href: '/courts', label: 'Корты', hot: false },
   { href: '/pickup-games', label: 'Игры', hot: true },
   { href: '/events', label: 'Ивенты', hot: false },
+  { href: '/giveaways', label: 'Розыгрыши', hot: true },
   { href: '/news', label: 'Новости', hot: false },
 ];
 

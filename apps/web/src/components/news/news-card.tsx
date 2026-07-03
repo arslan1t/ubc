@@ -25,10 +25,11 @@ interface NewsCardProps {
     viewCount: number;
   };
   featured?: boolean;
+  large?: boolean;
   className?: string;
 }
 
-export function NewsCard({ article, featured, className }: NewsCardProps) {
+export function NewsCard({ article, featured, large, className }: NewsCardProps) {
   const cat = CATEGORY_META[article.category] ?? { label: article.category, color: 'text-muted-foreground', bg: 'bg-secondary border-border' };
 
   if (featured) {
@@ -92,7 +93,7 @@ export function NewsCard({ article, featured, className }: NewsCardProps) {
 
   return (
     <Link href={`/news/${article.slug}`} className={cn('group block', className)}>
-      <article className="rounded-2xl overflow-hidden h-full flex flex-col glass-content-card">
+      <article className="rounded-2xl overflow-hidden h-full flex flex-col glass-content-card transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
         <div className="relative aspect-video bg-secondary/30 overflow-hidden shrink-0">
           {article.coverUrl ? (
             <Image
@@ -100,7 +101,7 @@ export function NewsCard({ article, featured, className }: NewsCardProps) {
               alt={article.title}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, 33vw"
+              sizes={large ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 768px) 100vw, 33vw'}
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-secondary/80 to-card flex items-center justify-center">
@@ -118,14 +119,30 @@ export function NewsCard({ article, featured, className }: NewsCardProps) {
           </div>
         </div>
 
-        <div className="p-4 flex-1 flex flex-col">
-          <h3 className="font-display font-bold text-sm leading-snug group-hover:text-primary transition-colors line-clamp-2 flex-1 mb-3">
+        <div className={cn('flex-1 flex flex-col', large ? 'p-5' : 'p-4')}>
+          <h3 className={cn(
+            'font-display font-bold leading-snug group-hover:text-primary transition-colors line-clamp-2',
+            large ? 'text-lg md:text-xl mb-2' : 'text-base mb-2',
+          )}>
             {article.title}
           </h3>
+          {article.excerpt && (
+            <p className={cn(
+              'text-muted-foreground text-xs leading-relaxed mb-3',
+              large ? 'line-clamp-3 md:text-sm' : 'line-clamp-2',
+            )}>
+              {article.excerpt}
+            </p>
+          )}
 
-          <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-auto">
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-auto pt-2 border-t border-border/40">
             <span className="font-medium">{article.author.firstName} {article.author.lastName}</span>
-            <span>{formatDate(article.publishedAt, 'd MMM')}</span>
+            <span className="flex items-center gap-3">
+              {article.viewCount > 0 && (
+                <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{article.viewCount}</span>
+              )}
+              <span>{formatDate(article.publishedAt, 'd MMM')}</span>
+            </span>
           </div>
         </div>
       </article>

@@ -16,11 +16,61 @@ export interface EventListItem {
   registrationCount: number;
 }
 
+export type RegistrationStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type MatchStatus = 'SCHEDULED' | 'LIVE' | 'COMPLETED';
+
 export interface EventRegistrationEntry {
   id: string;
   userId: string;
   createdAt: string;
-  user: { firstName: string; lastName: string; avatarUrl: string | null };
+  status?: RegistrationStatus;
+  height?: number | null;
+  weight?: number | null;
+  age?: number | null;
+  highlightUrl?: string | null;
+  instagram?: string | null;
+  reviewNote?: string | null;
+  user: { id?: string; firstName: string; lastName: string; avatarUrl: string | null; telegramUsername?: string | null };
+}
+
+export interface MyRegistration {
+  id: string;
+  status: RegistrationStatus;
+  height: number | null;
+  weight: number | null;
+  age: number | null;
+  highlightUrl: string | null;
+  instagram: string | null;
+  reviewNote: string | null;
+}
+
+export interface MatchPlayer {
+  id: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
+}
+
+export interface BracketMatch {
+  id: string;
+  round: number;
+  slot: number;
+  player1: MatchPlayer | null;
+  player2: MatchPlayer | null;
+  player1Id: string | null;
+  player2Id: string | null;
+  score1: number | null;
+  score2: number | null;
+  winnerId: string | null;
+  status: MatchStatus;
+}
+
+export interface EventApplication {
+  height?: number;
+  weight?: number;
+  age?: number;
+  highlightUrl?: string;
+  instagram?: string;
 }
 
 export interface EventImage {
@@ -71,14 +121,24 @@ export function useRegisterForEvent(eventId: string, slug: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => api.post(`/events/${eventId}/register`).then((r) => r.data),
+    mutationFn: (application: EventApplication) =>
+      api.post(`/events/${eventId}/register`, application).then((r) => r.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events', slug] });
-      toast.success('Вы зарегистрированы на турнир!');
+      queryClient.invalidateQueries({ queryKey: ['events', eventId, 'my-registration'] });
+      toast.success('Заявка отправлена! Мы проверим её и сообщим о результате.');
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message ?? 'Не удалось зарегистрироваться');
+      toast.error(error?.response?.data?.message ?? 'Не удалось отправить заявку');
     },
+  });
+}
+
+export function useMyEventRegistration(eventId: string, enabled: boolean) {
+  return useQuery<MyRegistration | null>({
+    queryKey: ['events', eventId, 'my-registration'],
+    queryFn: async () => (await api.get(`/events/${eventId}/my-registration`)).data || null,
+    enabled: !!eventId && enabled,
   });
 }
 
@@ -89,11 +149,23 @@ export function useUnregisterFromEvent(eventId: string, slug: string) {
     mutationFn: () => api.delete(`/events/${eventId}/register`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events', slug] });
-      toast.success('Регистрация отменена');
+      queryClient.invalidateQueries({ queryKey: ['events', eventId, 'my-registration'] });
+      toast.success('Заявка отменена');
     },
     onError: () => {
-      toast.error('Не удалось отменить регистрацию');
+      toast.error('Не удалось отменить заявку');
     },
+  });
+}
+
+/** Live bracket — polls while the tournament is going so viewers see updates in near-real-time. */
+export function useBracket(eventId: string, live = false) {
+  return useQuery<{ matches: BracketMatch[]; generatedAt: string | null }>({
+    queryKey: ['events', eventId, 'bracket'],
+    queryFn: async () => (await api.get(`/events/${eventId}/bracket`)).data,
+    enabled: !!eventId,
+    refetchInterval: live ? 12_000 : false,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -177,5 +249,61 @@ export function useEventRegistrationsAdmin(eventId: string) {
     queryKey: ['events', eventId, 'registrations'],
     queryFn: async () => (await api.get(`/events/${eventId}/registrations`)).data,
     enabled: !!eventId,
+  });
+}
+
+export function useReviewRegistration(eventId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ regId, status, note }: { regId: string; status: 'APPROVED' | 'REJECTED'; note?: string }) =>
+      api.patch(`/events/${eventId}/registrations/${regId}`, { status, note }).then((r) => r.data),
+    onSuccess: (_d, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['events', eventId, 'registrations'] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      toast.success(vars.status === 'APPROVED' ? 'Участник зачислен' : 'Заявка отклонена');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message ?? 'Не удалось обработать заявку');
+    },
+  });
+}
+
+export function useGenerateBracket(eventId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.post(`/events/${eventId}/bracket/generate`).then((r) => r.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events', eventId, 'bracket'] });
+      toast.success('Сетка сгенерирована');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message ?? 'Не удалось сгенерировать сетку');
+    },
+  });
+}
+
+export function useResetBracket(eventId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.delete(`/events/${eventId}/bracket`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events', eventId, 'bracket'] });
+      toast.success('Сетка сброшена');
+    },
+    onError: () => toast.error('Не удалось сбросить сетку'),
+  });
+}
+
+export function useUpdateMatch(eventId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ matchId, ...dto }: { matchId: string; score1?: number; score2?: number; status?: MatchStatus; winnerId?: string }) =>
+      api.patch(`/events/${eventId}/matches/${matchId}`, dto).then((r) => r.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events', eventId, 'bracket'] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message ?? 'Не удалось обновить матч');
+    },
   });
 }
