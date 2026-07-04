@@ -17,6 +17,7 @@ export function GiveawaysListContent() {
         eyebrow="Призы"
         goldTitle="Розыгрыши"
         subtitle="Выполняй условия, попадай в пул и выигрывай призы на колесе"
+        imageSrc="/hero-giveaways.png"
       />
 
       <div className="container-page py-8">

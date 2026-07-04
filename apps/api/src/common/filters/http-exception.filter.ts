@@ -17,13 +17,20 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const reply = ctx.getResponse<FastifyReply>();
     const request = ctx.getRequest<FastifyRequest>();
 
-    const status =
-      exception instanceof HttpException
+    // @fastify/multipart throws a plain error when a file exceeds the size cap —
+    // surface it as a clear 413 instead of a generic 500.
+    const isFileTooLarge =
+      (exception as { code?: string })?.code === 'FST_REQ_FILE_TOO_LARGE';
+
+    const status = isFileTooLarge
+      ? HttpStatus.PAYLOAD_TOO_LARGE
+      : exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const message =
-      exception instanceof HttpException
+    const message = isFileTooLarge
+      ? 'Файл слишком большой — максимум 25 МБ. Сожми фото или выбери другое.'
+      : exception instanceof HttpException
         ? exception.getResponse()
         : 'Internal server error';
 

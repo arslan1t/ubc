@@ -48,6 +48,7 @@ export function OpenRunsPageContent() {
         title="Pickup"
         goldTitle="Games"
         subtitle="Открытые игры — находи и записывайся"
+        imageSrc="/hero-pickup.png"
         action={
           isAuthenticated ? (
             <Button asChild variant="gold" className="shrink-0 rounded-2xl shadow-[0_0_20px_hsl(43_85%_53%/0.3)] hover:shadow-[0_0_35px_hsl(43_85%_53%/0.5)]">

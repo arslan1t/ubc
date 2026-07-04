@@ -27,9 +27,10 @@ async function bootstrap() {
     contentSecurityPolicy: false,
   });
 
-  // Image uploads (courts / news galleries) — 8MB cap, single file per request.
+  // Image uploads (courts / news galleries) — 25MB cap covers modern phone
+  // photos (a 12MP HEIC/JPEG is often 10-15MB); Sharp shrinks them afterwards.
   await app.register(multipart, {
-    limits: { fileSize: 8 * 1024 * 1024, files: 1 },
+    limits: { fileSize: 25 * 1024 * 1024, files: 1 },
   });
 
   const configService = app.get(ConfigService);
