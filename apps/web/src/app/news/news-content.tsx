@@ -62,6 +62,7 @@ export function NewsPageContent() {
         eyebrow="Редакция"
         goldTitle="Новости"
         subtitle="Баскетбол Узбекистана в деталях"
+        imageSrc="/hero-news.png"
         action={
           <Link
             href="/news/suggest"

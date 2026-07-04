@@ -13,6 +13,8 @@ import {
   useDeleteCourtImage,
   type CourtFormValues,
 } from '@/hooks/use-courts';
+import { CourtLocationPicker } from '@/components/courts/court-location-picker';
+import { MAP_AVAILABLE } from '@/components/courts/yandex-map';
 import { cn } from '@/lib/utils';
 
 function CourtImageManager({ court }: { court: any }) {
@@ -25,7 +27,7 @@ function CourtImageManager({ court }: { court: any }) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) { toast.error('Только изображения'); return; }
-    if (file.size > 8 * 1024 * 1024) { toast.error('Максимум 8 МБ'); return; }
+    if (file.size > 25 * 1024 * 1024) { toast.error('Максимум 25 МБ'); return; }
     upload.mutate(
       { courtId: court.id, file },
       { onSuccess: () => toast.success('Фото загружено'), onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Не удалось загрузить') },
@@ -144,6 +146,28 @@ function CourtForm({
             onChange={(e) => set('longitude', parseFloat(e.target.value))}
             className="w-full mt-1 px-3 py-2 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:border-primary/50" />
         </div>
+      </div>
+
+      {MAP_AVAILABLE && (
+        <div>
+          <label className="text-xs text-muted-foreground">Точка на карте — кликни или перетащи маркер</label>
+          <div className="mt-1.5">
+            <CourtLocationPicker
+              value={
+                values.latitude && values.longitude
+                  ? { latitude: values.latitude, longitude: values.longitude }
+                  : null
+              }
+              onChange={({ latitude, longitude }) => {
+                set('latitude', latitude);
+                set('longitude', longitude);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="grid sm:grid-cols-2 gap-3">
         <div>
           <label className="text-xs text-muted-foreground">Тип</label>
           <select value={values.type} onChange={(e) => set('type', e.target.value as CourtFormValues['type'])}

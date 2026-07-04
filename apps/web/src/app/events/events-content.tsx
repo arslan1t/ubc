@@ -2,9 +2,10 @@
 
 import { PageHero } from '@/components/shared/page-hero';
 import Link from 'next/link';
-import { Calendar, MapPin, Users, Trophy } from 'lucide-react';
+import Image from 'next/image';
+import { Calendar, MapPin, Users, Trophy, ChevronRight } from 'lucide-react';
 import { useEvents } from '@/hooks/use-events';
-import { formatDate } from '@/lib/utils';
+import { formatDate, cn } from '@/lib/utils';
 import { QueryError } from '@/components/ui/query-error';
 
 const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
@@ -24,6 +25,7 @@ export function EventsPageContent() {
         title="Ивенты"
         goldTitle="и турниры"
         subtitle="Официальные турниры, уличные чемпионаты и баскетбольные ивенты Узбекистана"
+        imageSrc="/hero-events.png"
       />
 
       <section className="container-page py-14">
@@ -41,37 +43,59 @@ export function EventsPageContent() {
             <p className="text-muted-foreground">Пока нет запланированных турниров.</p>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {events.map((event) => {
               const status = STATUS_LABEL[event.status];
               return (
                 <Link
                   key={event.id}
                   href={`/events/${event.slug}`}
-                  className="group relative overflow-hidden rounded-2xl p-5 glass-content-card"
+                  className="group rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-primary/40 transition-all duration-200 flex flex-col"
                 >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className={`text-[10px] font-bold uppercase tracking-wider rounded-full px-2.5 py-1 border ${status.cls}`}>
+                  <div className="relative aspect-[16/9] bg-gradient-to-br from-primary/20 to-primary/5">
+                    {event.coverUrl ? (
+                      <Image
+                        src={event.coverUrl}
+                        alt={event.title}
+                        fill
+                        quality={90}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Trophy className="w-12 h-12 text-primary/40" />
+                      </div>
+                    )}
+                    <span className={cn('absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider rounded-full px-2.5 py-1 border', status.cls)}>
                       {status.label}
                     </span>
                   </div>
-                  <h3 className="font-display font-bold text-xl mb-2 group-hover:text-primary transition-colors">
-                    {event.title}
-                  </h3>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5" />
-                      {formatDate(event.startDate)}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5" />
-                      {event.location}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Users className="w-3.5 h-3.5" />
-                      {event.registrationCount}
-                      {event.maxParticipants ? ` / ${event.maxParticipants}` : ''} участников
-                    </span>
+
+                  <div className="p-4 flex-1 flex flex-col">
+                    <h3 className="font-display font-bold text-lg leading-snug mb-2 group-hover:text-primary transition-colors">
+                      {event.title}
+                    </h3>
+                    <div className="flex flex-col gap-1 text-xs text-muted-foreground mb-3">
+                      <span className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 shrink-0" />
+                        {formatDate(event.startDate)}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 shrink-0" />
+                        {event.location}
+                      </span>
+                    </div>
+                    <div className="mt-auto flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5" />
+                        {event.registrationCount}
+                        {event.maxParticipants ? ` / ${event.maxParticipants}` : ''} участников
+                      </span>
+                      <span className="flex items-center gap-0.5 group-hover:text-primary transition-colors">
+                        Подробнее <ChevronRight className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
                   </div>
                 </Link>
               );

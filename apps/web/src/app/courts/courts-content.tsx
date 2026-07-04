@@ -27,6 +27,7 @@ export function CourtsPageContent() {
         title="Баскетбольные"
         goldTitle="корты"
         subtitle="Все площадки Узбекистана на одной карте"
+        imageSrc="/hero-courts.png"
         action={
           <Link
             href="/courts/suggest"
