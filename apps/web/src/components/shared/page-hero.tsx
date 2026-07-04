@@ -4,9 +4,10 @@ import Image from 'next/image';
 /**
  * Единая шапка всех списочных страниц: градиентный фон + сетка площадки,
  * маленький надзаголовок, крупный display-заголовок с золотой частью,
- * подпись, опциональная кнопка и опциональное фото 4:3 справа. Используется
- * на кортах, играх, ивентах, розыгрышах, новостях и медиа — чтобы весь сайт
- * выглядел идентично.
+ * подпись, опциональная кнопка и опциональное фото 16:9 справа (тот же
+ * масштаб, что и обложки карточек в списках). Используется на кортах,
+ * играх, ивентах, розыгрышах, новостях и медиа — чтобы весь сайт выглядел
+ * идентично.
  */
 export function PageHero({
   eyebrow,
@@ -48,14 +49,14 @@ export function PageHero({
         </div>
 
         {imageSrc && (
-          <div className="relative w-full lg:w-[380px] xl:w-[440px] aspect-[4/3] shrink-0 rounded-2xl overflow-hidden border border-border/50 shadow-[0_10px_40px_rgba(0,0,0,0.35)]">
+          <div className="relative w-full lg:w-[440px] xl:w-[520px] aspect-[16/9] shrink-0 rounded-2xl overflow-hidden border border-border/50 shadow-[0_10px_40px_rgba(0,0,0,0.35)]">
             <Image
               src={imageSrc}
               alt=""
               fill
               priority
               quality={90}
-              sizes="(max-width: 1024px) 100vw, 440px"
+              sizes="(max-width: 1024px) 100vw, 520px"
               className="object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a]/40 via-transparent to-transparent" />
